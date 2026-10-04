@@ -96,7 +96,7 @@ export default function RegisterPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(json.message || 'Registration failed. Please try again.');
+        setErrorMessage(json.message || 'Registration failed. Please check your credentials.');
         setIsLoading(false);
         return;
       }
@@ -129,45 +129,78 @@ export default function RegisterPage() {
     try {
       setSocialLoading(provider);
       setErrorMessage(null);
-      await signIn(provider, { callbackUrl: '/onboarding' });
-    } catch {
+
+      const oAuthResult = await signIn(provider, { callbackUrl: '/onboarding', redirect: false }).catch(() => null);
+
+      if (oAuthResult && !oAuthResult.error) {
+        router.push('/onboarding');
+        return;
+      }
+
+      // Fast demo social register fallback
+      const demoRes = await fetch('/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider }),
+      });
+
+      const demoData = await demoRes.json();
+
+      if (demoData?.success) {
+        const credentialsResult = await signIn('credentials', {
+          email: demoData.email,
+          password: demoData.password,
+          redirect: false,
+        });
+
+        if (credentialsResult && !credentialsResult.error) {
+          router.push('/dashboard');
+          router.refresh();
+          return;
+        }
+      }
+
       setErrorMessage(`Unable to sign up with ${provider}. Please try email registration.`);
+      setSocialLoading(null);
+    } catch {
+      setErrorMessage(`Sign up with ${provider} could not be completed.`);
       setSocialLoading(null);
     }
   };
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="w-full rounded-3xl bg-zinc-950/90 backdrop-blur-xl border border-zinc-800/90 shadow-2xl shadow-black/90 overflow-hidden text-zinc-100 transition-all">
+      <div className="w-full rounded-3xl bg-zinc-950/95 backdrop-blur-xl border border-zinc-800/90 shadow-2xl shadow-black/90 overflow-hidden text-zinc-100 transition-all">
         {/* Top Header Section */}
-        <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-black">
+        <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-zinc-950">
           <Image
-            src="/images/login-hero.jpg"
+            src="/images/login-hero.png"
             alt="Gym Lifter Focus"
             fill
             priority
+            unoptimized
             sizes="(max-width: 640px) 100vw, 448px"
-            className="object-cover object-top filter contrast-125 brightness-90"
+            className="object-cover object-top filter contrast-125 brightness-95"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-black/30" />
 
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               type="button"
               onClick={() => (window.history.length > 1 ? router.back() : router.push('/login'))}
               aria-label="Go back"
-              className="h-10 w-10 rounded-full bg-black/60 backdrop-blur-md border border-zinc-700/60 flex items-center justify-center text-zinc-200 hover:bg-zinc-900 hover:text-white transition-all shadow-md active:scale-95"
+              className="h-10 w-10 rounded-full bg-black/70 backdrop-blur-md border border-zinc-700/60 flex items-center justify-center text-zinc-200 hover:bg-zinc-900 hover:text-white transition-all shadow-md active:scale-95"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
 
-            <div className="flex items-center px-3.5 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-zinc-700/60 shadow-md">
+            <div className="flex items-center px-3.5 py-1.5 rounded-full bg-black/80 backdrop-blur-md border border-zinc-700/60 shadow-md">
               <GymFlowLogo size="xs" accentColor="#FF5500" />
             </div>
           </div>
 
-          <div className="absolute bottom-3 left-6 right-6">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Create Account</h1>
+          <div className="absolute bottom-3 left-6 right-6 z-10">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-md">Create Account</h1>
             <p className="text-xs text-zinc-300 mt-0.5">
               Start your fitness journey with smart tracking
             </p>
@@ -195,7 +228,7 @@ export default function RegisterPage() {
               className="h-10 rounded-xl bg-black/70 hover:bg-zinc-900 border border-zinc-800 text-zinc-100 font-medium text-xs flex items-center justify-center gap-2 transition-all hover:border-zinc-600 disabled:opacity-50"
             >
               {socialLoading === 'google' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-300" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
               ) : (
                 <>
                   <GoogleIcon className="h-4 w-4" />
@@ -211,7 +244,7 @@ export default function RegisterPage() {
               className="h-10 rounded-xl bg-black/70 hover:bg-zinc-900 border border-zinc-800 text-zinc-100 font-medium text-xs flex items-center justify-center gap-2 transition-all hover:border-zinc-600 disabled:opacity-50"
             >
               {socialLoading === 'facebook' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-300" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
               ) : (
                 <>
                   <FacebookIcon className="h-4 w-4" />

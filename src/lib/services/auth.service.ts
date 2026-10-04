@@ -101,6 +101,58 @@ export class AuthService {
   }
 
   /**
+   * Helper for seamless local/demo social login when OAuth env keys are absent in dev.
+   */
+  static async getOrCreateDemoUser(provider: 'google' | 'facebook' | 'athlete'): Promise<AuthenticatedUser> {
+    const email =
+      provider === 'google'
+        ? 'google.athlete@gymflow.dev'
+        : provider === 'facebook'
+          ? 'facebook.athlete@gymflow.dev'
+          : 'demo.athlete@gymflow.dev';
+    const name =
+      provider === 'google'
+        ? 'Google Athlete (Demo)'
+        : provider === 'facebook'
+          ? 'Facebook Athlete (Demo)'
+          : 'Alex Johnson (Demo)';
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      const hashedPassword = await hashPassword('GymFlowDemo123!');
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          passwordHash: hashedPassword,
+          profile: {
+            create: {
+              onboardingComplete: true,
+              activityLevel: 'MODERATELY_ACTIVE',
+              experienceLevel: 'INTERMEDIATE',
+              weightUnit: 'KG',
+              heightCm: 178,
+            },
+          },
+        },
+        include: { profile: true },
+      });
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      onboardingComplete: user.profile?.onboardingComplete ?? true,
+    };
+  }
+
+  /**
    * Handles or links an OAuth sign-in (e.g. Google), creating user & profile if new.
    */
   static async handleOAuthSignIn(

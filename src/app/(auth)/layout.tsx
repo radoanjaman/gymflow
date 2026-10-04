@@ -7,10 +7,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Background Image Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/login-hero.jpg"
+          src="/images/login-hero.png"
           alt="GymFlow Workout Background"
           fill
           priority
+          unoptimized
           sizes="100vw"
           className="object-cover object-center opacity-30 sm:opacity-40 filter contrast-125 brightness-75 scale-105 transition-transform duration-1000"
         />
