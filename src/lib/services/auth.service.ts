@@ -101,6 +101,120 @@ export class AuthService {
   }
 
   /**
+   * Handles or links an OAuth sign-in (e.g. Google), creating user & profile if new.
+   */
+  static async handleOAuthSignIn(
+    account: {
+      provider: string;
+      providerAccountId: string;
+      type?: string;
+      access_token?: string;
+      refresh_token?: string;
+      expires_at?: number;
+      token_type?: string;
+      scope?: string;
+      id_token?: string;
+      session_state?: string;
+    },
+    profile: {
+      email: string;
+      name?: string | null;
+      image?: string | null;
+    }
+  ): Promise<AuthenticatedUser | null> {
+    const email = profile.email.toLowerCase();
+
+    const existingAccount = await prisma.account.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+        },
+      },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+    });
+
+    if (existingAccount?.user) {
+      return {
+        id: existingAccount.user.id,
+        email: existingAccount.user.email,
+        name: existingAccount.user.name,
+        image: existingAccount.user.image,
+        onboardingComplete: existingAccount.user.profile?.onboardingComplete ?? false,
+      };
+    }
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: profile.name || null,
+          image: profile.image || null,
+          profile: {
+            create: {
+              onboardingComplete: false,
+              activityLevel: 'MODERATELY_ACTIVE',
+              experienceLevel: 'BEGINNER',
+              weightUnit: 'KG',
+            },
+          },
+        },
+        include: { profile: true },
+      });
+    }
+
+    await prisma.account.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+        },
+      },
+      update: {
+        access_token: account.access_token,
+        refresh_token: account.refresh_token,
+        expires_at: account.expires_at,
+        token_type: account.token_type,
+        scope: account.scope,
+        id_token: account.id_token,
+        session_state: account.session_state,
+      },
+      create: {
+        userId: user.id,
+        type: account.type || 'oauth',
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        access_token: account.access_token,
+        refresh_token: account.refresh_token,
+        expires_at: account.expires_at,
+        token_type: account.token_type,
+        scope: account.scope,
+        id_token: account.id_token,
+        session_state: account.session_state,
+      },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      onboardingComplete: user.profile?.onboardingComplete ?? false,
+    };
+  }
+
+  /**
    * Retrieves an authenticated user by their unique ID.
    *
    * @param userId - User ID

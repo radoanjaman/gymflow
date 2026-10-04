@@ -9,6 +9,10 @@ const { mockPrisma } = vi.hoisted(() => {
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    account: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     $transaction: vi.fn(async (cb: unknown) => {
       if (typeof cb === 'function') {
         return cb(mock);
@@ -167,6 +171,80 @@ describe('Auth Integration Tests', () => {
 
       const result = await AuthService.validateCredentials('nonexistent@example.com', 'Pass123');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('OAuth Sign In Flow', () => {
+    it('successfully links existing account and returns user data', async () => {
+      mockPrisma.account.findUnique.mockResolvedValueOnce({
+        id: 'acc_1',
+        userId: 'user_oauth_1',
+        provider: 'google',
+        providerAccountId: 'g_12345',
+        user: {
+          id: 'user_oauth_1',
+          email: 'googleuser@example.com',
+          name: 'Google User',
+          image: 'https://lh3.googleusercontent.com/photo.jpg',
+          profile: {
+            onboardingComplete: true,
+          },
+        },
+      });
+
+      const result = await AuthService.handleOAuthSignIn(
+        {
+          provider: 'google',
+          providerAccountId: 'g_12345',
+          type: 'oauth',
+        },
+        {
+          email: 'googleuser@example.com',
+          name: 'Google User',
+          image: 'https://lh3.googleusercontent.com/photo.jpg',
+        }
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('user_oauth_1');
+      expect(result?.email).toBe('googleuser@example.com');
+      expect(result?.onboardingComplete).toBe(true);
+    });
+
+    it('creates new user and links account on first OAuth sign in', async () => {
+      mockPrisma.account.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.user.create.mockResolvedValueOnce({
+        id: 'new_google_user_id',
+        email: 'newuser@example.com',
+        name: 'New Athlete',
+        image: 'https://lh3.googleusercontent.com/photo2.jpg',
+        profile: {
+          onboardingComplete: false,
+        },
+      });
+      mockPrisma.account.upsert.mockResolvedValueOnce({
+        id: 'new_acc_id',
+      });
+
+      const result = await AuthService.handleOAuthSignIn(
+        {
+          provider: 'google',
+          providerAccountId: 'g_98765',
+          type: 'oauth',
+        },
+        {
+          email: 'newuser@example.com',
+          name: 'New Athlete',
+          image: 'https://lh3.googleusercontent.com/photo2.jpg',
+        }
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('new_google_user_id');
+      expect(result?.email).toBe('newuser@example.com');
+      expect(result?.onboardingComplete).toBe(false);
+      expect(mockPrisma.account.upsert).toHaveBeenCalled();
     });
   });
 });
