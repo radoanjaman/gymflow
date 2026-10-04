@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Dumbbell } from 'lucide-react';
+import { GymFlowMark } from '@/components/ui/GymFlowLogo';
 
 interface GymFlowLoaderProps {
   label?: string;
@@ -16,20 +16,20 @@ export function GymFlowLoader({
 }: GymFlowLoaderProps) {
   const content = (
     <div className="flex flex-col items-center justify-center space-y-4 p-8 text-center animate-in fade-in duration-300">
-      {/* Animated Glowing Dual Rings + Dumbbell Heartbeat */}
+      {/* Animated Glowing Dual Rings + Brand Mark */}
       <div className="relative flex items-center justify-center h-20 w-20">
         {/* Outer glowing pulsing aura */}
-        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-60" />
+        <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping opacity-60" />
 
         {/* Orbiting Neon Gradient Ring */}
-        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary/50 animate-spin" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500 border-r-orange-500/50 animate-spin" />
 
         {/* Reverse Secondary Inner Ring */}
-        <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-primary/70 border-l-primary/30 animate-spin [animation-direction:reverse] [animation-duration:1.5s]" />
+        <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-orange-500/70 border-l-orange-500/30 animate-spin [animation-direction:reverse] [animation-duration:1.5s]" />
 
-        {/* Center Dumbbell Icon Badge */}
-        <div className="relative h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 animate-bounce [animation-duration:2s]">
-          <Dumbbell className="h-6 w-6" />
+        {/* Center GymFlow Mark */}
+        <div className="relative h-12 w-12 rounded-2xl bg-zinc-950 border border-zinc-800 text-white flex items-center justify-center shadow-lg shadow-orange-500/25 animate-pulse">
+          <GymFlowMark className="h-7 w-7 text-white" accentColor="#FF5500" />
         </div>
       </div>
 

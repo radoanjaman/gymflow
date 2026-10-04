@@ -1,9 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="128" fill="#09090b"/>
-  <circle cx="256" cy="256" r="210" fill="none" stroke="#22c55e" stroke-width="16" opacity="0.2"/>
-  <path d="M120 220 L120 292 M392 220 L392 292" stroke="#22c55e" stroke-width="32" stroke-linecap="round"/>
-  <rect x="152" y="196" width="32" height="120" rx="16" fill="#22c55e"/>
-  <rect x="328" y="196" width="32" height="120" rx="16" fill="#22c55e"/>
-  <rect x="184" y="240" width="144" height="32" rx="16" fill="#ffffff"/>
-  <circle cx="256" cy="256" r="16" fill="#22c55e"/>
+  <rect width="512" height="512" rx="120" fill="#09090b"/>
+  <!-- Ambient Orange Glow -->
+  <circle cx="256" cy="256" r="180" fill="#FF5500" opacity="0.12" filter="blur(40px)"/>
+  
+  <g transform="translate(96, 96) scale(3.2)">
+    <!-- Outer Angular G Frame (White) -->
+    <path
+      d="M0 0 H60 V18 H18 V78 H46 V52 H32 V36 H62 V78 L46 96 H16 L0 80 Z"
+      fill="#FFFFFF"
+    />
+    
+    <!-- Top-Right Accent Square Dot (Orange) -->
+    <rect x="76" y="0" width="24" height="24" rx="2" fill="#FF5500" />
+    
+    <!-- Right Vertical Pillar (White) -->
+    <rect x="76" y="34" width="24" height="62" rx="2" fill="#FFFFFF" />
+  </g>
 </svg>

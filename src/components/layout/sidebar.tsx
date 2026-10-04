@@ -4,22 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DESKTOP_NAV_ITEMS } from '@/constants/navigation';
-import { Dumbbell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { GymFlowLogo } from '@/components/ui/GymFlowLogo';
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="hidden h-screen w-64 flex-col border-r border-border bg-card md:flex">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Dumbbell className="h-5 w-5" />
-        </div>
-        <span className="text-xl font-black tracking-tight text-foreground">
-          Gym<span className="text-primary">Flow</span>
-        </span>
+      <div className="flex h-16 items-center border-b border-border px-6">
+        <Link href="/dashboard" className="flex items-center">
+          <GymFlowLogo size="md" textColor="text-foreground" />
+        </Link>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Sidebar Navigation">
