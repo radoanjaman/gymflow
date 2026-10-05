@@ -1,12 +1,8 @@
 # GymFlow 🏋️‍♂️
 
-> Production-grade, mobile-first workout tracking and fitness planning platform built with Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, PostgreSQL, Prisma, and PWA capabilities.
+> Public exercise discovery and a static exercise library built with Next.js App Router, TypeScript, Tailwind CSS, and shadcn/ui.
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-gymflow--p9jx.vercel.app-2ea44f?style=for-the-badge&logo=vercel)](https://gymflow-p9jx.vercel.app)
-[![Build Status](https://img.shields.io/badge/Status-Live%20in%20Production-success?style=for-the-badge)](https://gymflow-p9jx.vercel.app)
-
-🔗 **Live App**: [https://gymflow-p9jx.vercel.app](https://gymflow-p9jx.vercel.app)  
-🔑 **Demo Credentials**: `demo@gymflow.app` / `Password123!`
+The active app is public and static. Login, registration, personal tracking, persistence APIs, and offline data sync have been removed. The legacy Prisma/service source is not used by the public routes.
 
 ---
 
@@ -26,48 +22,40 @@
 
 ## Overview
 
-GymFlow is designed to provide a fast, offline-capable, distraction-free workout logging and routine planning experience. All health and fitness calculations (BMI, BMR, TDEE, Calorie targets, Protein targets, Volume, Workout Frequency) are computed deterministically in pure code functions. AI serves as an advisory assistant for routine optimization and exercise recommendations, always requiring explicit user approval before database persistence.
+GymFlow currently provides two public views: Discover and a bundled exercise library. Exercise data is served from local static datasets; the active app does not create accounts or save personal workout/profile data.
 
 ---
 
 ## Tech Stack
 
-| Category | Technology |
-|---|---|
-| **Framework** | Next.js 14+ (App Router, Server Components & Route Handlers) |
-| **Language** | TypeScript (Strict Mode with `noUncheckedIndexedAccess`) |
-| **Styling** | Tailwind CSS + `tailwindcss-animate` |
-| **UI Components** | shadcn/ui + Radix UI primitives |
-| **Database & ORM** | PostgreSQL + Prisma ORM |
-| **Validation** | Zod (Runtime validation for env, API input, schemas) |
-| **Unit Testing** | Vitest + React Testing Library + jsdom |
-| **E2E Testing** | Playwright (Mobile & Desktop browser profiles) |
-| **Formatting & Linting** | ESLint + Prettier + Prettier Tailwind Plugin |
-| **PWA** | Web App Manifest + Service Worker foundation |
+| Category                 | Technology                                                   |
+| ------------------------ | ------------------------------------------------------------ |
+| **Framework**            | Next.js 14+ (App Router, Server Components & Route Handlers) |
+| **Language**             | TypeScript (Strict Mode with `noUncheckedIndexedAccess`)     |
+| **Styling**              | Tailwind CSS + `tailwindcss-animate`                         |
+| **UI Components**        | shadcn/ui + Radix UI primitives                              |
+| **Validation**           | Zod (Runtime validation for env, API input, schemas)         |
+| **Unit Testing**         | Vitest + React Testing Library + jsdom                       |
+| **E2E Testing**          | Playwright (Mobile & Desktop browser profiles)               |
+| **Formatting & Linting** | ESLint + Prettier + Prettier Tailwind Plugin                 |
+| **PWA**                  | Web App Manifest + Service Worker foundation                 |
 
 ---
 
 ## Architecture & Layer Separation
 
-GymFlow enforces a strict 4-layer architecture:
+The active application is a small public frontend:
 
 1. **Presentation Layer (`src/components/`, `src/app/`)**:
    - Clean React components using shadcn/ui.
    - Client components handle UI state; Server Components handle data fetching.
    - **No direct business logic or Prisma calls in components.**
 
-2. **API Layer (`src/app/api/`)**:
-   - Next.js Route Handlers.
-   - Responsible for: (1) Session authentication check, (2) Zod payload validation, (3) Service layer invocation passing session `userId`, (4) Unified JSON response formatting.
-   - Handled via `handleApiError()`.
+2. **Static Data (`src/data/`)**:
+   - Bundled exercise entries power catalog browsing and filtering.
 
-3. **Service Layer (`src/lib/services/`)**:
-   - Contains all domain logic, orchestration, and Prisma database transactions.
-   - Always scopes queries by `userId`.
-
-4. **Pure Utilities & Validations (`src/lib/utils/`, `src/lib/validations/`)**:
-   - Deterministic calculations (BMI, Calories, Protein, Frequency, Volume).
-   - Zero side-effects; 100% test branch coverage target.
+3. **Public Health Route (`src/app/api/health/`)**:
+   - Reports application liveness without checking a user account or database.
 
 ---
 
@@ -84,9 +72,8 @@ GymFlow/
 │   └── icons/              # PWA app icons
 ├── src/
 │   ├── app/                # App Router routes and layouts
-│   │   ├── (auth)/         # Unauthenticated route group (login, register)
-│   │   ├── (app)/          # Authenticated app shell (dashboard, workout, etc.)
-│   │   ├── api/            # Next.js Route Handlers
+│   │   ├── (app)/          # Public Discover and exercise-library pages
+│   │   ├── api/health/     # Public application liveness endpoint
 │   │   ├── globals.css     # Tailwind and theme styles
 │   │   └── layout.tsx      # Root HTML layout with PWA metadata
 │   ├── components/
@@ -98,7 +85,7 @@ GymFlow/
 │   │   ├── db/             # Singleton Prisma client (prisma.ts)
 │   │   ├── env.ts          # Zod environment variable validator
 │   │   ├── errors/         # AppError class and handleApiError utility
-│   │   ├── services/       # Service layer modules
+│   │   ├── services/       # Legacy backend modules; not used by active routes
 │   │   ├── utils/          # Pure functions and calculations
 │   │   └── validations/    # Zod schemas (common, profile, routines, etc.)
 │   └── types/              # Global TypeScript types (API, database, etc.)
@@ -123,10 +110,11 @@ GymFlow/
 ## Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js**: v18.18+ or v20+
-- **PostgreSQL**: PostgreSQL 15+ instance running locally or hosted (e.g. Neon, Supabase)
 
 ### 2. Installation
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -139,55 +127,48 @@ npm install
 cp .env.example .env.local
 ```
 
-### 3. Database Initialization
-```bash
-# Generate Prisma Client
-npm run db:generate
+### 3. Start Development Server
 
-# Run migrations (when PostgreSQL is configured)
-npm run db:migrate
-```
-
-### 4. Start Development Server
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
 ## Available Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Starts Next.js development server |
-| `npm run build` | Builds the production application |
-| `npm run start` | Starts Next.js in production mode |
-| `npm run lint` | Runs Next.js ESLint checks |
-| `npm run typecheck` | Runs TypeScript compiler checks (`tsc --noEmit`) |
-| `npm run test` | Runs all unit and integration tests with Vitest |
-| `npm run test:unit` | Runs unit tests |
-| `npm run test:integration` | Runs integration tests |
-| `npm run test:e2e` | Runs Playwright end-to-end browser tests |
-| `npm run test:coverage` | Runs Vitest with v8 code coverage reporting |
-| `npm run format` | Formats codebase with Prettier |
-| `npm run format:check` | Checks formatting with Prettier |
-| `npm run db:generate` | Generates Prisma client types |
-| `npm run db:migrate` | Runs database migrations in development |
-| `npm run db:studio` | Opens Prisma Studio GUI |
+| Script                  | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `npm run dev`           | Starts Next.js development server                |
+| `npm run build`         | Builds the production application                |
+| `npm run start`         | Starts Next.js in production mode                |
+| `npm run lint`          | Runs Next.js ESLint checks                       |
+| `npm run typecheck`     | Runs TypeScript compiler checks (`tsc --noEmit`) |
+| `npm run test`          | Runs all unit and integration tests with Vitest  |
+| `npm run test:unit`     | Runs unit tests                                  |
+| `npm run test:e2e`      | Runs Playwright end-to-end browser tests         |
+| `npm run test:coverage` | Runs Vitest with v8 code coverage reporting      |
+| `npm run format`        | Formats codebase with Prettier                   |
+| `npm run format:check`  | Checks formatting with Prettier                  |
 
 ---
 
 ## Testing Guide
 
 ### Unit Tests
+
 Unit tests use **Vitest** with `@testing-library/react` and `jsdom`. All pure utility calculation functions must maintain 100% branch coverage.
+
 ```bash
 npm run test
 ```
 
 ### E2E Tests
+
 E2E tests use **Playwright** with preconfigured mobile browser emulation (iPhone 14, Pixel 5) and desktop Chrome.
+
 ```bash
 npm run test:e2e
 ```
@@ -198,6 +179,5 @@ npm run test:e2e
 
 1. **Strict Types**: Never use `any` without documented justification.
 2. **Deterministic Calculations**: Keep calculations in `src/lib/utils/`. AI must never be the source of truth for metrics.
-3. **User Isolation**: All database queries must include `userId` derived from the validated server session.
-4. **Error Handling**: Throw `AppError` in services and use `handleApiError()` in route handlers.
-5. **Mobile-First CSS**: Use Tailwind classes that build up from mobile (`text-sm sm:text-base lg:text-lg`).
+3. **Public Data**: Active pages use bundled static data and do not collect or persist personal fitness records.
+4. **Mobile-First CSS**: Use Tailwind classes that build up from mobile (`text-sm sm:text-base lg:text-lg`).

@@ -1,94 +1,40 @@
-import {
-  LayoutDashboard,
-  Dumbbell,
-  Calendar,
-  LineChart,
-  Target,
-  Utensils,
-  BookOpen,
-  Settings,
-} from 'lucide-react';
+import { BookOpen, Compass } from 'lucide-react';
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof Compass;
   exact?: boolean;
 }
 
 /**
- * Mobile bottom navigation items (primary actions for mobile phone screen)
+ * Public pages available from the mobile navigation.
  */
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   {
-    label: 'Home',
-    href: '/dashboard',
-    icon: LayoutDashboard,
+    label: 'Discover',
+    href: '/discover',
+    icon: Compass,
   },
   {
-    label: 'Plan',
-    href: '/workout',
-    icon: Calendar,
-  },
-  {
-    label: 'Workout',
-    href: '/execute',
-    icon: Dumbbell,
-  },
-  {
-    label: 'Progress',
-    href: '/progress',
-    icon: LineChart,
-  },
-  {
-    label: 'Profile',
-    href: '/settings',
-    icon: Settings,
+    label: 'Exercises',
+    href: '/exercises',
+    icon: BookOpen,
   },
 ];
 
 /**
- * Desktop sidebar navigation items
+ * Public pages available from the desktop sidebar.
  */
 export const DESKTOP_NAV_ITEMS: NavItem[] = [
   {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    label: 'My Routine',
-    href: '/workout',
-    icon: Dumbbell,
-  },
-  {
-    label: 'Calendar',
-    href: '/calendar',
-    icon: Calendar,
+    label: 'Discover',
+    href: '/discover',
+    icon: Compass,
   },
   {
     label: 'Exercise Library',
     href: '/exercises',
     icon: BookOpen,
-  },
-  {
-    label: 'Progress & Stats',
-    href: '/progress',
-    icon: LineChart,
-  },
-  {
-    label: 'Goals',
-    href: '/goals',
-    icon: Target,
-  },
-  {
-    label: 'Nutrition',
-    href: '/nutrition',
-    icon: Utensils,
-  },
-  {
-    label: 'Settings',
-    href: '/settings',
-    icon: Settings,
   },
 ];

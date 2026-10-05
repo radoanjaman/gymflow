@@ -3,6 +3,8 @@
 **Version:** 1.0.0  
 **Date:** 2026-08-24
 
+> **Legacy schema reference:** The active app does not expose account or personal-data persistence. The Prisma schema below is retained as dormant legacy source and is not used by current public routes.
+
 ---
 
 ## Table of Contents
@@ -453,45 +455,45 @@ model PushSubscription {
 
 ## 3. Table Descriptions
 
-| Table | Purpose | Notes |
-|-------|---------|-------|
-| `users` | NextAuth user account | `passwordHash` null for OAuth |
-| `user_profiles` | Fitness profile data | 1:1 with user; created at onboarding |
-| `accounts` | NextAuth OAuth accounts | Multiple OAuth per user |
-| `auth_sessions` | NextAuth sessions | JWT strategy; table mostly unused in JWT mode |
-| `exercises` | Normalized exercise library | Seeded from external API; global (not per-user) |
-| `muscle_groups` | Canonical muscle group reference | e.g., "Chest", "Quadriceps" |
-| `exercise_muscles` | Exercise to muscle group mapping | isPrimary distinguishes primary/secondary |
-| `routines` | User-defined weekly workout plans | At most 1 isActive per user |
-| `routine_days` | Day-of-week slot in a routine | 7 per routine; unique (routineId, dayOfWeek) |
-| `routine_day_exercises` | Exercise assigned to a routine day | Ordered by displayOrder |
-| `workout_sessions` | A single workout execution instance | status: IN_PROGRESS / COMPLETED / ABANDONED |
-| `exercise_logs` | Each exercise within a session | Linked to session |
-| `set_logs` | Individual set data | idempotencyKey enables offline sync dedup |
-| `weight_logs` | Body weight entries over time | Always in kg; display conversion in code |
-| `goals` | User fitness goals | At most 1 ACTIVE per user (service enforced) |
-| `meal_logs` | User-entered meals | Supplementary nutrition data |
-| `push_subscriptions` | Web Push endpoint registration | Multiple devices per user |
+| Table                   | Purpose                             | Notes                                           |
+| ----------------------- | ----------------------------------- | ----------------------------------------------- |
+| `users`                 | NextAuth user account               | `passwordHash` null for OAuth                   |
+| `user_profiles`         | Fitness profile data                | 1:1 with user; created at onboarding            |
+| `accounts`              | NextAuth OAuth accounts             | Multiple OAuth per user                         |
+| `auth_sessions`         | NextAuth sessions                   | JWT strategy; table mostly unused in JWT mode   |
+| `exercises`             | Normalized exercise library         | Seeded from external API; global (not per-user) |
+| `muscle_groups`         | Canonical muscle group reference    | e.g., "Chest", "Quadriceps"                     |
+| `exercise_muscles`      | Exercise to muscle group mapping    | isPrimary distinguishes primary/secondary       |
+| `routines`              | User-defined weekly workout plans   | At most 1 isActive per user                     |
+| `routine_days`          | Day-of-week slot in a routine       | 7 per routine; unique (routineId, dayOfWeek)    |
+| `routine_day_exercises` | Exercise assigned to a routine day  | Ordered by displayOrder                         |
+| `workout_sessions`      | A single workout execution instance | status: IN_PROGRESS / COMPLETED / ABANDONED     |
+| `exercise_logs`         | Each exercise within a session      | Linked to session                               |
+| `set_logs`              | Individual set data                 | idempotencyKey enables offline sync dedup       |
+| `weight_logs`           | Body weight entries over time       | Always in kg; display conversion in code        |
+| `goals`                 | User fitness goals                  | At most 1 ACTIVE per user (service enforced)    |
+| `meal_logs`             | User-entered meals                  | Supplementary nutrition data                    |
+| `push_subscriptions`    | Web Push endpoint registration      | Multiple devices per user                       |
 
 ---
 
 ## 4. Indexing Strategy
 
-| Table | Index | Rationale |
-|-------|-------|----------|
-| `users` | `email` UNIQUE | Auth lookup |
-| `routines` | `(userId, isActive)` | Dashboard: fetch active routine |
-| `routine_days` | `(routineId)` | Fetch all days for a routine |
-| `workout_sessions` | `(userId, startedAt)` | History pagination |
-| `workout_sessions` | `(userId, status)` | Find in-progress session |
-| `exercise_logs` | `(sessionId)` | Fetch all exercises for a session |
-| `set_logs` | `(exerciseLogId)` | Fetch all sets for an exercise log |
-| `set_logs` | `idempotencyKey` UNIQUE | Offline sync deduplication |
-| `weight_logs` | `(userId, loggedAt)` | Weight chart queries |
-| `goals` | `(userId, status)` | Active goal lookup |
-| `meal_logs` | `(userId, loggedAt)` | Daily nutrition queries |
-| `exercises` | `name` | Search |
-| `exercises` | `category` | Filter |
+| Table              | Index                   | Rationale                          |
+| ------------------ | ----------------------- | ---------------------------------- |
+| `users`            | `email` UNIQUE          | Auth lookup                        |
+| `routines`         | `(userId, isActive)`    | Dashboard: fetch active routine    |
+| `routine_days`     | `(routineId)`           | Fetch all days for a routine       |
+| `workout_sessions` | `(userId, startedAt)`   | History pagination                 |
+| `workout_sessions` | `(userId, status)`      | Find in-progress session           |
+| `exercise_logs`    | `(sessionId)`           | Fetch all exercises for a session  |
+| `set_logs`         | `(exerciseLogId)`       | Fetch all sets for an exercise log |
+| `set_logs`         | `idempotencyKey` UNIQUE | Offline sync deduplication         |
+| `weight_logs`      | `(userId, loggedAt)`    | Weight chart queries               |
+| `goals`            | `(userId, status)`      | Active goal lookup                 |
+| `meal_logs`        | `(userId, loggedAt)`    | Daily nutrition queries            |
+| `exercises`        | `name`                  | Search                             |
+| `exercises`        | `category`              | Filter                             |
 
 ---
 
@@ -506,11 +508,11 @@ async function activateRoutine(userId: string, routineId: string) {
   await prisma.$transaction([
     prisma.routine.updateMany({
       where: { userId, isActive: true },
-      data: { isActive: false }
+      data: { isActive: false },
     }),
     prisma.routine.update({
       where: { id: routineId, userId },
-      data: { isActive: true }
+      data: { isActive: true },
     }),
   ]);
 }
@@ -523,7 +525,7 @@ Enforced at the **service layer** with a count check:
 ```typescript
 async function createGoal(userId: string, data: CreateGoalInput) {
   const activeGoal = await prisma.goal.findFirst({
-    where: { userId, status: 'ACTIVE' }
+    where: { userId, status: 'ACTIVE' },
   });
   if (activeGoal) {
     throw new AppError('GOAL_ALREADY_ACTIVE', 'Archive your current goal first.');
@@ -534,12 +536,12 @@ async function createGoal(userId: string, data: CreateGoalInput) {
 
 ### Cascade Deletes
 
-| Parent Deleted | Cascades to |
-|---------------|------------|
-| `User` | All user data (total account deletion) |
-| `Routine` | `RoutineDay` -> `RoutineDayExercise` |
-| `WorkoutSession` | `ExerciseLog` -> `SetLog` |
-| `ExerciseLog` | `SetLog` |
+| Parent Deleted   | Cascades to                            |
+| ---------------- | -------------------------------------- |
+| `User`           | All user data (total account deletion) |
+| `Routine`        | `RoutineDay` -> `RoutineDayExercise`   |
+| `WorkoutSession` | `ExerciseLog` -> `SetLog`              |
+| `ExerciseLog`    | `SetLog`                               |
 
 ### Data Integrity Rules
 

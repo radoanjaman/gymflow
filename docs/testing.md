@@ -3,6 +3,8 @@
 **Version:** 1.0.0  
 **Date:** 2026-08-24
 
+> **Archived strategy:** The former authenticated persistence/API test suites were removed with those features. Current coverage targets the public static pages and health endpoint.
+
 ---
 
 ## Table of Contents
@@ -36,16 +38,16 @@
 
 ## 2. Testing Stack
 
-| Tool | Purpose | Layer |
-|------|---------|-------|
-| **Jest** | Test runner + assertions | Unit + Integration |
-| **React Testing Library** | Component rendering + user event simulation | Unit (components) |
-| **MSW (Mock Service Worker)** | Mock API handlers in tests | Integration (client) |
-| **Playwright** | Browser automation | E2E |
-| **Prisma Test Utils** | Test database seeding and cleanup | Integration (API) |
-| **@testing-library/jest-dom** | Custom DOM matchers | Unit (components) |
-| **faker.js** | Test data generation | All layers |
-| **axe-core / @axe-core/playwright** | Accessibility testing | E2E |
+| Tool                                | Purpose                                     | Layer                |
+| ----------------------------------- | ------------------------------------------- | -------------------- |
+| **Jest**                            | Test runner + assertions                    | Unit + Integration   |
+| **React Testing Library**           | Component rendering + user event simulation | Unit (components)    |
+| **MSW (Mock Service Worker)**       | Mock API handlers in tests                  | Integration (client) |
+| **Playwright**                      | Browser automation                          | E2E                  |
+| **Prisma Test Utils**               | Test database seeding and cleanup           | Integration (API)    |
+| **@testing-library/jest-dom**       | Custom DOM matchers                         | Unit (components)    |
+| **faker.js**                        | Test data generation                        | All layers           |
+| **axe-core / @axe-core/playwright** | Accessibility testing                       | E2E                  |
 
 ---
 
@@ -240,7 +242,11 @@ afterAll(async () => {
 ```typescript
 describe('POST /api/goals', () => {
   it('creates a goal successfully', async () => {
-    const res = await POST('/api/goals', { type: 'WEIGHT_LOSS', title: 'Lose 5kg', targetValue: 70 });
+    const res = await POST('/api/goals', {
+      type: 'WEIGHT_LOSS',
+      title: 'Lose 5kg',
+      targetValue: 70,
+    });
     expect(res.status).toBe(201);
     expect(res.body.status).toBe('ACTIVE');
   });
@@ -290,21 +296,21 @@ E2E tests run against a fully running application with a test database.
 
 ### Critical User Journeys
 
-| Journey | Test File | Priority |
-|---------|-----------|----------|
-| Registration + onboarding | `e2e/onboarding.spec.ts` | P0 |
-| Login and session persistence | `e2e/auth.spec.ts` | P0 |
-| Create a workout routine | `e2e/routine.spec.ts` | P0 |
-| Start, log sets, finish workout | `e2e/workout-execution.spec.ts` | P0 |
-| View workout history | `e2e/history.spec.ts` | P1 |
-| Set and track a goal | `e2e/goals.spec.ts` | P1 |
-| Log body weight and view chart | `e2e/weight.spec.ts` | P1 |
-| View weekly statistics | `e2e/stats.spec.ts` | P1 |
-| Browse exercise library | `e2e/exercises.spec.ts` | P2 |
-| AI routine optimization flow | `e2e/ai-optimize.spec.ts` | P2 |
-| Install PWA prompt | `e2e/pwa.spec.ts` | P2 |
-| Offline set logging | `e2e/offline.spec.ts` | P2 |
-| GDPR data export | `e2e/gdpr.spec.ts` | P2 |
+| Journey                         | Test File                       | Priority |
+| ------------------------------- | ------------------------------- | -------- |
+| Registration + onboarding       | `e2e/onboarding.spec.ts`        | P0       |
+| Login and session persistence   | `e2e/auth.spec.ts`              | P0       |
+| Create a workout routine        | `e2e/routine.spec.ts`           | P0       |
+| Start, log sets, finish workout | `e2e/workout-execution.spec.ts` | P0       |
+| View workout history            | `e2e/history.spec.ts`           | P1       |
+| Set and track a goal            | `e2e/goals.spec.ts`             | P1       |
+| Log body weight and view chart  | `e2e/weight.spec.ts`            | P1       |
+| View weekly statistics          | `e2e/stats.spec.ts`             | P1       |
+| Browse exercise library         | `e2e/exercises.spec.ts`         | P2       |
+| AI routine optimization flow    | `e2e/ai-optimize.spec.ts`       | P2       |
+| Install PWA prompt              | `e2e/pwa.spec.ts`               | P2       |
+| Offline set logging             | `e2e/offline.spec.ts`           | P2       |
+| GDPR data export                | `e2e/gdpr.spec.ts`              | P2       |
 
 ### E2E Test Example
 
@@ -342,7 +348,7 @@ test('User can complete a full workout session', async ({ page }) => {
 ```typescript
 // tests/mocks/ai.mock.ts
 jest.mock('@/lib/ai/client', () => ({
-  aiProvider: { /* mock AI provider */ },
+  aiProvider: {/* mock AI provider */},
 }));
 
 export const mockRoutineOptimizationResponse: RoutineOptimizationOutput = {
@@ -438,7 +444,7 @@ Run Lighthouse CI on every PR:
 test('Dashboard has no accessibility violations', async ({ page }) => {
   await page.goto('/dashboard');
   const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations.filter(v => v.impact === 'critical')).toHaveLength(0);
+  expect(results.violations.filter((v) => v.impact === 'critical')).toHaveLength(0);
 });
 ```
 
@@ -454,13 +460,13 @@ test('Dashboard has no accessibility violations', async ({ page }) => {
 
 ## 11. Coverage Requirements
 
-| Layer | Minimum Coverage |
-|-------|----------------|
-| `src/lib/utils/` | 100% branch coverage |
-| `src/lib/services/` | 80% coverage |
-| `src/app/api/` (route handlers) | 80% coverage |
-| `src/components/` | 60% coverage |
-| Critical paths (auth, goal constraints) | 100% coverage |
+| Layer                                   | Minimum Coverage     |
+| --------------------------------------- | -------------------- |
+| `src/lib/utils/`                        | 100% branch coverage |
+| `src/lib/services/`                     | 80% coverage         |
+| `src/app/api/` (route handlers)         | 80% coverage         |
+| `src/components/`                       | 60% coverage         |
+| Critical paths (auth, goal constraints) | 100% coverage        |
 
 ### Jest Configuration
 

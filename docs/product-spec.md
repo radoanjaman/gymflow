@@ -5,6 +5,8 @@
 **Date:** 2026-08-24  
 **Authors:** Lead Software Architect
 
+> **Archived specification:** The active app now contains only public Discover and static Exercise Library pages plus `/api/health`. Account, personal-data persistence, and workout-tracking requirements below are not current behavior.
+
 ---
 
 ## Table of Contents
@@ -36,33 +38,33 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 
 ### Guiding Principles
 
-| Principle | Meaning |
-|-----------|---------|
-| Mobile-first | Primary design target is a 375px-wide phone screen |
-| Offline-first | Core features work without an internet connection |
-| Data sovereignty | Users own their data; no cross-user leakage is possible |
-| AI as advisor | AI provides suggestions; code computes all authoritative values |
-| Accessible by default | WCAG 2.1 AA compliance from day one |
+| Principle             | Meaning                                                         |
+| --------------------- | --------------------------------------------------------------- |
+| Mobile-first          | Primary design target is a 375px-wide phone screen              |
+| Offline-first         | Core features work without an internet connection               |
+| Data sovereignty      | Users own their data; no cross-user leakage is possible         |
+| AI as advisor         | AI provides suggestions; code computes all authoritative values |
+| Accessible by default | WCAG 2.1 AA compliance from day one                             |
 
 ---
 
 ## 3. Technology Stack
 
-| Layer | Technology | Version Constraint |
-|-------|-----------|-------------------|
-| Framework | Next.js App Router | >= 14 |
-| Language | TypeScript | strict mode, >= 5.0 |
-| UI Library | React | >= 18 |
-| Component System | shadcn/ui + Radix UI | latest stable |
-| Styling | Tailwind CSS | >= 3 |
-| Database | PostgreSQL | >= 15 |
-| ORM | Prisma | >= 5 |
-| Authentication | NextAuth.js v5 (Auth.js) | >= 5 |
-| AI | Vercel AI SDK + provider (OpenAI / Google) | structured outputs |
-| Exercise Data | ExerciseDB (RapidAPI) or WGER REST API | normalized + cached |
-| PWA | next-pwa or custom service worker | — |
-| Testing | Jest + React Testing Library + Playwright | — |
-| Deployment | Vercel (primary), containerizable | — |
+| Layer            | Technology                                 | Version Constraint  |
+| ---------------- | ------------------------------------------ | ------------------- |
+| Framework        | Next.js App Router                         | >= 14               |
+| Language         | TypeScript                                 | strict mode, >= 5.0 |
+| UI Library       | React                                      | >= 18               |
+| Component System | shadcn/ui + Radix UI                       | latest stable       |
+| Styling          | Tailwind CSS                               | >= 3                |
+| Database         | PostgreSQL                                 | >= 15               |
+| ORM              | Prisma                                     | >= 5                |
+| Authentication   | NextAuth.js v5 (Auth.js)                   | >= 5                |
+| AI               | Vercel AI SDK + provider (OpenAI / Google) | structured outputs  |
+| Exercise Data    | ExerciseDB (RapidAPI) or WGER REST API     | normalized + cached |
+| PWA              | next-pwa or custom service worker          | —                   |
+| Testing          | Jest + React Testing Library + Playwright  | —                   |
+| Deployment       | Vercel (primary), containerizable          | —                   |
 
 ---
 
@@ -216,13 +218,13 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 
 ### NFR-001 — Performance
 
-| Metric | Target |
-|--------|--------|
-| Largest Contentful Paint (LCP) | <= 2.5 s on 4G |
-| First Input Delay (FID) | <= 100 ms |
-| Cumulative Layout Shift (CLS) | <= 0.1 |
-| API p95 response time | <= 300 ms (cached routes) |
-| Database query p95 | <= 100 ms |
+| Metric                         | Target                    |
+| ------------------------------ | ------------------------- |
+| Largest Contentful Paint (LCP) | <= 2.5 s on 4G            |
+| First Input Delay (FID)        | <= 100 ms                 |
+| Cumulative Layout Shift (CLS)  | <= 0.1                    |
+| API p95 response time          | <= 300 ms (cached routes) |
+| Database query p95             | <= 100 ms                 |
 
 ### NFR-002 — Security
 
@@ -271,17 +273,20 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 **DB Dependencies:** `User`, `UserProfile`
 
 **Edge Cases:**
+
 - User navigates away mid-onboarding — partial data must not persist.
 - Future date of birth — validated server-side (age 13–120).
 - Height/weight outside physiological range — reject with validation error.
 - OAuth user — profile pre-filled from OAuth provider.
 
 **Acceptance Criteria:**
+
 - AC1: Onboarding completable in < 3 minutes.
 - AC2: Invalid data shows inline errors without page reload.
 - AC3: Dashboard renders with personalised data after onboarding.
 
 **Tests:**
+
 - Unit: `validateOnboardingInput()` rejects invalid DOB, height, weight.
 - Integration: POST `/api/profile/onboard` persists correct data.
 - E2E: Full onboarding flow via Playwright.
@@ -299,17 +304,20 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 **DB Dependencies:** `WorkoutSession`, `ExerciseLog`, `SetLog`, `RoutineDay`, `RoutineDayExercise`
 
 **Edge Cases:**
+
 - App closed mid-workout — session auto-saved as draft; user can resume.
 - User logs 0 sets — session marked abandoned.
 - Network lost during workout — offline queue handles set writes.
 
 **Acceptance Criteria:**
+
 - AC1: "Start Workout" creates `WorkoutSession` immediately.
 - AC2: Each set completion writes `SetLog` within 500 ms (online) or queues offline.
 - AC3: Finishing marks session `status: COMPLETED`.
 - AC4: Previous performance visible for every exercise.
 
 **Tests:**
+
 - Unit: `computeWorkoutVolume()`, `computeFrequency()`.
 - Integration: POST `/api/sessions`, PATCH `/api/sessions/:id`.
 - E2E: Start → log sets → finish.
@@ -325,14 +333,17 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 **Outputs:** `{ totalVolume, workoutCount, totalDuration, muscleGroupBreakdown, personalRecords }`.
 
 **Edge Cases:**
+
 - No data for period — return zeroed stats, not error.
 - Weight unit must be respected.
 
 **Acceptance Criteria:**
+
 - AC1: Stats render within 500 ms for 1 year of data.
 - AC2: Volume shown in user's preferred weight unit.
 
 **Tests:**
+
 - Unit: `aggregateWeeklyStats()`, `findPersonalRecords()`.
 - Integration: GET `/api/stats?period=week`.
 
@@ -347,16 +358,19 @@ GymFlow is a production-grade, mobile-first fitness tracking and workout plannin
 **Outputs:** `Goal` record; progress bar data on dashboard.
 
 **Edge Cases:**
+
 - Second active goal attempt — reject; offer to archive current.
 - Target date passes without completion — mark `EXPIRED`.
 - Weight-loss goal with no weight logs — progress indeterminate; prompt to log.
 
 **Acceptance Criteria:**
+
 - AC1: Only one `status: ACTIVE` goal per user (DB constraint + service check).
 - AC2: Progress bar computed from authoritative data, not AI.
 - AC3: Goal completion triggers celebration animation and prompt.
 
 **Tests:**
+
 - Unit: `computeGoalProgress()` for each goal type.
 - Integration: POST `/api/goals` rejects second active goal.
 - E2E: Set goal → achieve → celebrate → set new goal.
@@ -398,27 +412,27 @@ US-013: As a user, I want monthly statistics to understand my training consisten
 
 ## 9. Assumptions
 
-| # | Assumption |
-|---|-----------|
-| A1 | The exercise API (ExerciseDB or WGER) provides sufficient free-tier data to seed the library. |
-| A2 | AI calls are made via Vercel AI SDK using OpenAI GPT-4o or Google Gemini with structured output. |
-| A3 | Push notifications use the Web Push API; no native SDK required for v1. |
-| A4 | Weight unit is a user preference; the database always stores values in kg. |
-| A5 | All time is stored in UTC; display converted to user's local timezone client-side. |
-| A6 | Mifflin-St Jeor equation used for BMR; activity factors defined as named constants. |
-| A7 | "Biological sex" collected for BMR accuracy, not for identity; optional and privacy-sensitive. |
-| A8 | Offline sync conflicts resolved with last-write-wins using server timestamps. |
+| #   | Assumption                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------ |
+| A1  | The exercise API (ExerciseDB or WGER) provides sufficient free-tier data to seed the library.    |
+| A2  | AI calls are made via Vercel AI SDK using OpenAI GPT-4o or Google Gemini with structured output. |
+| A3  | Push notifications use the Web Push API; no native SDK required for v1.                          |
+| A4  | Weight unit is a user preference; the database always stores values in kg.                       |
+| A5  | All time is stored in UTC; display converted to user's local timezone client-side.               |
+| A6  | Mifflin-St Jeor equation used for BMR; activity factors defined as named constants.              |
+| A7  | "Biological sex" collected for BMR accuracy, not for identity; optional and privacy-sensitive.   |
+| A8  | Offline sync conflicts resolved with last-write-wins using server timestamps.                    |
 
 ---
 
 ## 10. Risk Register
 
-| ID | Risk | Likelihood | Impact | Mitigation |
-|----|------|-----------|--------|-----------|
-| R1 | Exercise API rate limits or downtime | Medium | High | Normalize and cache; fall back to local cache |
-| R2 | AI API cost overrun | Medium | Medium | Per-user daily AI call limits; token budgets |
-| R3 | PWA offline sync conflicts causing data loss | Low | High | Idempotent sync with server-side conflict resolution |
-| R4 | AI returns malformed output | Medium | Medium | Validate AI outputs with Zod; reject and fall back |
-| R5 | GDPR/data privacy compliance gap | Low | High | Data deletion endpoint; no PII in logs |
-| R6 | Database performance degradation at scale | Low | Medium | Composite indexes; connection pooling via PgBouncer |
-| R7 | Push notifications blocked by iOS Safari | High | Low | Fall back to in-app reminders; document to user |
+| ID  | Risk                                         | Likelihood | Impact | Mitigation                                           |
+| --- | -------------------------------------------- | ---------- | ------ | ---------------------------------------------------- |
+| R1  | Exercise API rate limits or downtime         | Medium     | High   | Normalize and cache; fall back to local cache        |
+| R2  | AI API cost overrun                          | Medium     | Medium | Per-user daily AI call limits; token budgets         |
+| R3  | PWA offline sync conflicts causing data loss | Low        | High   | Idempotent sync with server-side conflict resolution |
+| R4  | AI returns malformed output                  | Medium     | Medium | Validate AI outputs with Zod; reject and fall back   |
+| R5  | GDPR/data privacy compliance gap             | Low        | High   | Data deletion endpoint; no PII in logs               |
+| R6  | Database performance degradation at scale    | Low        | Medium | Composite indexes; connection pooling via PgBouncer  |
+| R7  | Push notifications blocked by iOS Safari     | High       | Low    | Fall back to in-app reminders; document to user      |

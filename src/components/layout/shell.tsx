@@ -3,7 +3,6 @@ import { Header } from './header';
 import { MobileNav } from './mobile-nav';
 import { Sidebar } from './sidebar';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
-import { OfflineBanner } from '@/components/pwa/OfflineBanner';
 import { PWAInstallBanner } from '@/components/pwa/PWAInstallBanner';
 
 interface ShellProps {
@@ -27,11 +26,8 @@ export function Shell({ children }: ShellProps) {
         {/* PWA Install Banner */}
         <PWAInstallBanner />
 
-        {/* Offline & Sync Status Banner */}
-        <OfflineBanner />
-
         {/* Page Content */}
-        <main className="flex-1 px-4 py-6 md:px-8 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8">{children}</main>
 
         {/* Mobile Bottom Navigation */}
         <MobileNav />

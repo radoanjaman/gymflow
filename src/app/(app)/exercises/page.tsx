@@ -1,24 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Search,
-  Dumbbell,
-  BookOpen,
-  Plus,
-  ChevronDown,
-  ChevronUp,
-  Play,
-  Sparkles,
-} from 'lucide-react';
+import { Search, Dumbbell, BookOpen, ChevronDown, ChevronUp, Play, Sparkles } from 'lucide-react';
 import { MUSCLE_WIKI_DATABASE, type MuscleWikiExercise } from '@/data/musclewiki-exercises';
-import { CreateCustomExerciseModal } from '@/components/exercises/CreateCustomExerciseModal';
 import { FormVideoGuideModal } from '@/components/exercises/FormVideoGuideModal';
 import { GymFlowLoader } from '@/components/ui/GymFlowLoader';
 
@@ -48,7 +44,6 @@ function ExercisesContent() {
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
 
   // Modals state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedGuideExercise, setSelectedGuideExercise] = useState<{
     name: string;
     primaryMuscle?: string | null;
@@ -106,27 +101,18 @@ function ExercisesContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12 animate-in fade-in duration-200">
+    <div className="mx-auto max-w-5xl space-y-6 pb-12 duration-200 animate-in fade-in">
       {/* Top Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
             <Dumbbell className="h-7 w-7 text-primary" />
             Complete Exercise Library
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Every movement possible across all muscle groups with proper form video guides.
           </p>
         </div>
-
-        <Button
-          type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="font-bold text-xs gap-2 shadow-sm shrink-0 h-9"
-        >
-          <Plus className="h-4 w-4" />
-          Create Custom Exercise
-        </Button>
       </div>
 
       {/* Muscle Group Filter Tabs */}
@@ -147,15 +133,15 @@ function ExercisesContent() {
                 type="button"
                 key={muscle}
                 onClick={() => setSelectedMuscle(muscle)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-[1.02]'
+                    ? 'scale-[1.02] border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20'
                     : 'border-border/80 bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
                 <span>{muscle}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-bold ${
                     isSelected
                       ? 'bg-black/20 text-primary-foreground'
                       : 'bg-muted/60 text-muted-foreground'
@@ -170,18 +156,18 @@ function ExercisesContent() {
       </div>
 
       {/* Search & Equipment Filter Strip */}
-      <div className="flex flex-col sm:flex-row gap-2 pt-1">
+      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search exercises by name, muscle, or keyword (e.g. Bench Press, Squat, Cable)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-10 text-xs rounded-xl"
+            className="h-10 rounded-xl pl-9 text-xs"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 overflow-x-auto bg-card border border-border/70 p-1 rounded-xl">
+        <div className="flex flex-wrap items-center gap-1 overflow-x-auto rounded-xl border border-border/70 bg-card p-1">
           {EQUIPMENT_TABS.map((eq) => {
             const isActive = selectedEquipment === eq;
             return (
@@ -189,7 +175,7 @@ function ExercisesContent() {
                 key={eq}
                 type="button"
                 onClick={() => setSelectedEquipment(eq)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -203,13 +189,14 @@ function ExercisesContent() {
       </div>
 
       {/* Results Header Count */}
-      <div className="flex items-center justify-between text-xs font-bold text-muted-foreground pt-1">
+      <div className="flex items-center justify-between pt-1 text-xs font-bold text-muted-foreground">
         <span className="flex items-center gap-1.5 text-foreground">
           <Sparkles className="h-4 w-4 text-primary" />
-          Showing {filteredExercises.length} {selectedMuscle === 'All' ? 'Total' : selectedMuscle} Exercises
+          Showing {filteredExercises.length} {selectedMuscle === 'All' ? 'Total' : selectedMuscle}{' '}
+          Exercises
         </span>
         {selectedEquipment !== 'All' && (
-          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+          <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
             Equipment: {selectedEquipment}
           </Badge>
         )}
@@ -217,10 +204,10 @@ function ExercisesContent() {
 
       {/* Exercise Cards Grid */}
       {filteredExercises.length === 0 ? (
-        <Card className="border-dashed border-border p-10 text-center bg-card/40 rounded-2xl">
-          <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground/60 mb-2" />
+        <Card className="rounded-2xl border-dashed border-border bg-card/40 p-10 text-center">
+          <Dumbbell className="mx-auto mb-2 h-10 w-10 text-muted-foreground/60" />
           <CardTitle className="text-base font-black">No Matching Exercises</CardTitle>
-          <CardDescription className="text-xs max-w-sm mx-auto mt-1">
+          <CardDescription className="mx-auto mt-1 max-w-sm text-xs">
             Try adjusting your search query or selecting &quot;All&quot; equipment.
           </CardDescription>
         </Card>
@@ -232,24 +219,27 @@ function ExercisesContent() {
             return (
               <Card
                 key={ex.id}
-                className="border-border/80 bg-card hover:border-primary/40 transition-colors flex flex-col justify-between rounded-2xl shadow-sm overflow-hidden"
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border-border/80 bg-card shadow-sm transition-colors hover:border-primary/40"
               >
                 <CardHeader className="p-4 pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <CardTitle className="text-sm sm:text-base font-black text-foreground">
+                      <CardTitle className="text-sm font-black text-foreground sm:text-base">
                         {ex.name}
                       </CardTitle>
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
                         <Badge variant="secondary" className="text-[10px] font-bold">
                           {ex.muscle}
                         </Badge>
-                        <Badge variant="outline" className="text-[10px] font-semibold border-border/70">
+                        <Badge
+                          variant="outline"
+                          className="border-border/70 text-[10px] font-semibold"
+                        >
                           {ex.equipment}
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="text-[10px] uppercase font-bold text-primary border-primary/30 bg-primary/5"
+                          className="border-primary/30 bg-primary/5 text-[10px] font-bold uppercase text-primary"
                         >
                           {ex.difficulty}
                         </Badge>
@@ -259,11 +249,13 @@ function ExercisesContent() {
 
                   {ex.secondaryMuscles && ex.secondaryMuscles.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-2">
-                      <span className="text-[10px] text-muted-foreground font-semibold">Targets:</span>
+                      <span className="text-[10px] font-semibold text-muted-foreground">
+                        Targets:
+                      </span>
                       {ex.secondaryMuscles.map((sec, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] px-1.5 py-0.2 rounded bg-muted/40 text-muted-foreground border border-border/40 font-medium"
+                          className="py-0.2 rounded border border-border/40 bg-muted/40 px-1.5 text-[10px] font-medium text-muted-foreground"
                         >
                           {sec}
                         </span>
@@ -274,13 +266,13 @@ function ExercisesContent() {
 
                 {/* Expanded Instructions & Technique Details */}
                 {isExpanded && (
-                  <CardContent className="p-4 pt-2 border-t border-border/50 space-y-2.5 text-xs bg-muted/10">
+                  <CardContent className="space-y-2.5 border-t border-border/50 bg-muted/10 p-4 pt-2 text-xs">
                     <div className="space-y-1.5">
-                      <span className="font-bold text-foreground flex items-center gap-1">
+                      <span className="flex items-center gap-1 font-bold text-foreground">
                         <BookOpen className="h-3.5 w-3.5 text-primary" />
                         Proper Technique Cues:
                       </span>
-                      <ol className="list-decimal pl-4 space-y-1 text-muted-foreground text-[11px] leading-relaxed">
+                      <ol className="list-decimal space-y-1 pl-4 text-[11px] leading-relaxed text-muted-foreground">
                         {ex.instructions.map((step, idx) => (
                           <li key={idx}>{step}</li>
                         ))}
@@ -289,14 +281,14 @@ function ExercisesContent() {
                   </CardContent>
                 )}
 
-                <CardFooter className="flex items-center justify-between border-t border-border/50 p-3 bg-muted/20">
+                <CardFooter className="flex items-center justify-between border-t border-border/50 bg-muted/20 p-3">
                   <div className="flex items-center gap-1.5">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleExpand(ex.id)}
-                      className="text-xs h-8 gap-1 text-muted-foreground hover:text-foreground font-semibold"
+                      className="h-8 gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
                     >
                       {isExpanded ? (
                         <>
@@ -323,32 +315,18 @@ function ExercisesContent() {
                           instructions: ex.instructions,
                         })
                       }
-                      className="text-xs h-8 gap-1 text-primary border-primary/30 hover:bg-primary/10 font-bold"
+                      className="h-8 gap-1 border-primary/30 text-xs font-bold text-primary hover:bg-primary/10"
                     >
                       <Play className="h-3 w-3 fill-current text-primary" />
                       Watch Form Video
                     </Button>
                   </div>
-
-                  <Link href="/workout">
-                    <Button size="sm" className="text-xs h-8 gap-1 font-bold">
-                      <Plus className="h-3 w-3" />
-                      Add to Split
-                    </Button>
-                  </Link>
                 </CardFooter>
               </Card>
             );
           })}
         </div>
       )}
-
-      {/* Create Custom Exercise Modal */}
-      <CreateCustomExerciseModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreated={() => {}}
-      />
 
       {/* Form Video Guide Modal */}
       {selectedGuideExercise && (

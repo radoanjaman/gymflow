@@ -18,14 +18,14 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center space-y-5 max-w-md mx-auto">
-      <div className="h-14 w-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center border border-destructive/20 shadow-lg">
+    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center space-y-5 p-6 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive shadow-lg">
         <AlertCircle className="h-7 w-7" />
       </div>
 
       <div className="space-y-2">
         <h2 className="text-xl font-black tracking-tight text-foreground">Something went wrong</h2>
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           {error.message || 'An unexpected client error occurred while loading this view.'}
         </p>
       </div>
@@ -34,16 +34,16 @@ export default function Error({
         <Button
           onClick={() => reset()}
           size="sm"
-          className="gap-2 font-bold shadow-md shadow-primary/20 h-9 px-4"
+          className="h-9 gap-2 px-4 font-bold shadow-md shadow-primary/20"
         >
           <RotateCcw className="h-4 w-4" />
           Try Again
         </Button>
 
-        <Link href="/dashboard">
-          <Button variant="outline" size="sm" className="gap-2 font-semibold h-9 px-4">
+        <Link href="/discover">
+          <Button variant="outline" size="sm" className="h-9 gap-2 px-4 font-semibold">
             <Home className="h-4 w-4" />
-            Go to Dashboard
+            Go to Discover
           </Button>
         </Link>
       </div>

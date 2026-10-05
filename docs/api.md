@@ -3,6 +3,8 @@
 **Version:** 1.0.0  
 **Date:** 2026-08-24
 
+> **Archived API specification:** The active app exposes only `GET /api/health`. Auth, profile, workout, nutrition, AI, and other persistence endpoints described below have been removed.
+
 ---
 
 ## Table of Contents
@@ -34,6 +36,7 @@
 All endpoints under `/api/` (except `/api/auth/*`) require a valid session.
 
 Auth flow:
+
 1. Client includes session cookie (set by NextAuth).
 2. Route handler calls `await auth()` from NextAuth.
 3. If no session: return `401 Unauthorized`.
@@ -47,15 +50,16 @@ Auth flow:
 
 ### Profile
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/profile` | Get current user's profile and computed metrics |
-| `PATCH` | `/api/profile` | Update profile fields |
-| `POST` | `/api/profile/onboard` | Complete onboarding (idempotent) |
-| `GET` | `/api/profile/export` | GDPR data export |
-| `DELETE` | `/api/profile` | Account deletion (GDPR) |
+| Method   | Path                   | Description                                     |
+| -------- | ---------------------- | ----------------------------------------------- |
+| `GET`    | `/api/profile`         | Get current user's profile and computed metrics |
+| `PATCH`  | `/api/profile`         | Update profile fields                           |
+| `POST`   | `/api/profile/onboard` | Complete onboarding (idempotent)                |
+| `GET`    | `/api/profile/export`  | GDPR data export                                |
+| `DELETE` | `/api/profile`         | Account deletion (GDPR)                         |
 
 **GET /api/profile — Response**
+
 ```json
 {
   "id": "clx...",
@@ -85,40 +89,41 @@ Auth flow:
 
 ### Routines
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/routines` | List all routines for user |
-| `POST` | `/api/routines` | Create a new routine |
-| `GET` | `/api/routines/:id` | Get routine with days and exercises |
-| `PATCH` | `/api/routines/:id` | Update routine name/description |
-| `DELETE` | `/api/routines/:id` | Delete routine |
-| `POST` | `/api/routines/:id/activate` | Set as active routine |
-| `GET` | `/api/routines/:id/days` | Get all days for a routine |
-| `PATCH` | `/api/routines/:id/days/:dayId` | Update a day (label, isRestDay) |
-| `GET` | `/api/routines/:id/days/:dayId/exercises` | Get exercises for a day |
-| `POST` | `/api/routines/:id/days/:dayId/exercises` | Add exercise to day |
-| `PATCH` | `/api/routines/:id/days/:dayId/exercises/:exId` | Update exercise defaults/order |
-| `DELETE` | `/api/routines/:id/days/:dayId/exercises/:exId` | Remove exercise from day |
-| `PUT` | `/api/routines/:id/days/:dayId/exercises/reorder` | Reorder exercises |
+| Method   | Path                                              | Description                         |
+| -------- | ------------------------------------------------- | ----------------------------------- |
+| `GET`    | `/api/routines`                                   | List all routines for user          |
+| `POST`   | `/api/routines`                                   | Create a new routine                |
+| `GET`    | `/api/routines/:id`                               | Get routine with days and exercises |
+| `PATCH`  | `/api/routines/:id`                               | Update routine name/description     |
+| `DELETE` | `/api/routines/:id`                               | Delete routine                      |
+| `POST`   | `/api/routines/:id/activate`                      | Set as active routine               |
+| `GET`    | `/api/routines/:id/days`                          | Get all days for a routine          |
+| `PATCH`  | `/api/routines/:id/days/:dayId`                   | Update a day (label, isRestDay)     |
+| `GET`    | `/api/routines/:id/days/:dayId/exercises`         | Get exercises for a day             |
+| `POST`   | `/api/routines/:id/days/:dayId/exercises`         | Add exercise to day                 |
+| `PATCH`  | `/api/routines/:id/days/:dayId/exercises/:exId`   | Update exercise defaults/order      |
+| `DELETE` | `/api/routines/:id/days/:dayId/exercises/:exId`   | Remove exercise from day            |
+| `PUT`    | `/api/routines/:id/days/:dayId/exercises/reorder` | Reorder exercises                   |
 
 ---
 
 ### Workout Sessions
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/sessions` | List sessions (paginated, filterable) |
-| `POST` | `/api/sessions` | Start a new workout session |
-| `GET` | `/api/sessions/:id` | Get session with exercise logs and sets |
-| `PATCH` | `/api/sessions/:id` | Update session (notes) |
-| `DELETE` | `/api/sessions/:id` | Delete a session |
-| `POST` | `/api/sessions/:id/sets` | Log a set (accepts idempotency key) |
-| `PATCH` | `/api/sessions/:id/sets/:setId` | Edit a logged set |
-| `DELETE` | `/api/sessions/:id/sets/:setId` | Delete a logged set |
-| `POST` | `/api/sessions/:id/finish` | Finish the session |
-| `POST` | `/api/sessions/:id/abandon` | Abandon the session |
+| Method   | Path                            | Description                             |
+| -------- | ------------------------------- | --------------------------------------- |
+| `GET`    | `/api/sessions`                 | List sessions (paginated, filterable)   |
+| `POST`   | `/api/sessions`                 | Start a new workout session             |
+| `GET`    | `/api/sessions/:id`             | Get session with exercise logs and sets |
+| `PATCH`  | `/api/sessions/:id`             | Update session (notes)                  |
+| `DELETE` | `/api/sessions/:id`             | Delete a session                        |
+| `POST`   | `/api/sessions/:id/sets`        | Log a set (accepts idempotency key)     |
+| `PATCH`  | `/api/sessions/:id/sets/:setId` | Edit a logged set                       |
+| `DELETE` | `/api/sessions/:id/sets/:setId` | Delete a logged set                     |
+| `POST`   | `/api/sessions/:id/finish`      | Finish the session                      |
+| `POST`   | `/api/sessions/:id/abandon`     | Abandon the session                     |
 
 **POST /api/sessions/:id/sets — Request Body**
+
 ```json
 {
   "exerciseLogId": "clx...",
@@ -136,23 +141,24 @@ Auth flow:
 
 ### Exercises
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/exercises` | List exercises (filterable, paginated) |
-| `GET` | `/api/exercises/:id` | Get exercise detail |
-| `POST` | `/api/exercises/sync` | Admin: re-sync from external API |
+| Method | Path                  | Description                            |
+| ------ | --------------------- | -------------------------------------- |
+| `GET`  | `/api/exercises`      | List exercises (filterable, paginated) |
+| `GET`  | `/api/exercises/:id`  | Get exercise detail                    |
+| `POST` | `/api/exercises/sync` | Admin: re-sync from external API       |
 
 **GET /api/exercises Query Params**
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `q` | string | Full-text search on name |
-| `category` | string | Filter by category |
+| Param         | Type   | Description                    |
+| ------------- | ------ | ------------------------------ |
+| `q`           | string | Full-text search on name       |
+| `category`    | string | Filter by category             |
 | `muscleGroup` | string | Filter by primary muscle group |
-| `cursor` | string | Pagination cursor |
-| `limit` | number | Page size (default 20, max 50) |
+| `cursor`      | string | Pagination cursor              |
+| `limit`       | number | Page size (default 20, max 50) |
 
 **GET /api/exercises/:id — Response**
+
 ```json
 {
   "id": "clx...",
@@ -173,19 +179,20 @@ Auth flow:
 
 ### Statistics
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/stats` | Get statistics for a period |
-| `GET` | `/api/stats/records` | Get personal records |
+| Method | Path                 | Description                 |
+| ------ | -------------------- | --------------------------- |
+| `GET`  | `/api/stats`         | Get statistics for a period |
+| `GET`  | `/api/stats/records` | Get personal records        |
 
 **GET /api/stats Query Params**
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `period` | `week` \| `month` \| `year` | Time period |
-| `date` | ISO date string | Reference date (defaults to today) |
+| Param    | Type                        | Description                        |
+| -------- | --------------------------- | ---------------------------------- |
+| `period` | `week` \| `month` \| `year` | Time period                        |
+| `date`   | ISO date string             | Reference date (defaults to today) |
 
 **GET /api/stats — Response**
+
 ```json
 {
   "period": "week",
@@ -196,9 +203,7 @@ Auth flow:
   "scheduledCount": 5,
   "frequencyPct": 80,
   "totalDurationSecs": 14400,
-  "muscleGroupBreakdown": [
-    { "name": "Chest", "sessionCount": 2 }
-  ]
+  "muscleGroupBreakdown": [{ "name": "Chest", "sessionCount": 2 }]
 }
 ```
 
@@ -206,16 +211,17 @@ Auth flow:
 
 ### Goals
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/goals` | List all goals |
-| `GET` | `/api/goals/active` | Get active goal with progress |
-| `POST` | `/api/goals` | Create a goal |
-| `PATCH` | `/api/goals/:id` | Update goal |
-| `POST` | `/api/goals/:id/archive` | Archive/complete a goal |
-| `DELETE` | `/api/goals/:id` | Delete a goal |
+| Method   | Path                     | Description                   |
+| -------- | ------------------------ | ----------------------------- |
+| `GET`    | `/api/goals`             | List all goals                |
+| `GET`    | `/api/goals/active`      | Get active goal with progress |
+| `POST`   | `/api/goals`             | Create a goal                 |
+| `PATCH`  | `/api/goals/:id`         | Update goal                   |
+| `POST`   | `/api/goals/:id/archive` | Archive/complete a goal       |
+| `DELETE` | `/api/goals/:id`         | Delete a goal                 |
 
 **POST /api/goals — Request Body**
+
 ```json
 {
   "type": "WEIGHT_LOSS",
@@ -226,6 +232,7 @@ Auth flow:
 ```
 
 **GET /api/goals/active — Response**
+
 ```json
 {
   "id": "clx...",
@@ -245,24 +252,25 @@ Auth flow:
 
 ### Weight Tracking
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/weight` | Get weight log (paginated) |
-| `POST` | `/api/weight` | Log a weight entry |
-| `DELETE` | `/api/weight/:id` | Delete a weight entry |
+| Method   | Path              | Description                |
+| -------- | ----------------- | -------------------------- |
+| `GET`    | `/api/weight`     | Get weight log (paginated) |
+| `POST`   | `/api/weight`     | Log a weight entry         |
+| `DELETE` | `/api/weight/:id` | Delete a weight entry      |
 
 ---
 
 ### Nutrition
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/nutrition` | Get meal logs for a date |
-| `POST` | `/api/nutrition` | Log a meal |
-| `DELETE` | `/api/nutrition/:id` | Delete a meal log |
-| `GET` | `/api/nutrition/targets` | Get daily calorie + protein targets |
+| Method   | Path                     | Description                         |
+| -------- | ------------------------ | ----------------------------------- |
+| `GET`    | `/api/nutrition`         | Get meal logs for a date            |
+| `POST`   | `/api/nutrition`         | Log a meal                          |
+| `DELETE` | `/api/nutrition/:id`     | Delete a meal log                   |
+| `GET`    | `/api/nutrition/targets` | Get daily calorie + protein targets |
 
 **GET /api/nutrition/targets — Response**
+
 ```json
 {
   "dailyCalorieTarget": 2017,
@@ -282,13 +290,14 @@ Auth flow:
 
 ### AI Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/ai/optimize` | AI routine optimization |
-| `POST` | `/api/ai/insights` | AI progress insights |
+| Method | Path                 | Description              |
+| ------ | -------------------- | ------------------------ |
+| `POST` | `/api/ai/optimize`   | AI routine optimization  |
+| `POST` | `/api/ai/insights`   | AI progress insights     |
 | `POST` | `/api/ai/substitute` | AI exercise substitution |
 
 **POST /api/ai/optimize — Response**
+
 ```json
 {
   "suggestions": [
@@ -311,10 +320,10 @@ Auth flow:
 
 ### Push Notifications
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/push/subscribe` | Register a push subscription |
-| `DELETE` | `/api/push/subscribe` | Unsubscribe |
+| Method   | Path                  | Description                  |
+| -------- | --------------------- | ---------------------------- |
+| `POST`   | `/api/push/subscribe` | Register a push subscription |
+| `DELETE` | `/api/push/subscribe` | Unsubscribe                  |
 
 ---
 
@@ -363,33 +372,34 @@ All errors follow this structure:
 
 ### Standard Error Codes
 
-| Code | HTTP | When |
-|------|------|------|
-| `UNAUTHORIZED` | 401 | No valid session |
-| `FORBIDDEN` | 403 | Authenticated but accessing another user's data |
-| `NOT_FOUND` | 404 | Resource doesn't exist or doesn't belong to user |
-| `VALIDATION_ERROR` | 400 | Zod validation failed |
-| `GOAL_ALREADY_ACTIVE` | 409 | Creating a second active goal |
-| `SESSION_ALREADY_ACTIVE` | 409 | Starting a workout with IN_PROGRESS session |
-| `AI_UNAVAILABLE` | 503 | AI provider returned an error |
-| `EXERCISE_API_UNAVAILABLE` | 503 | External exercise API down |
-| `RATE_LIMIT_EXCEEDED` | 429 | Too many AI requests |
-| `INTERNAL_ERROR` | 500 | Unhandled server error |
+| Code                       | HTTP | When                                             |
+| -------------------------- | ---- | ------------------------------------------------ |
+| `UNAUTHORIZED`             | 401  | No valid session                                 |
+| `FORBIDDEN`                | 403  | Authenticated but accessing another user's data  |
+| `NOT_FOUND`                | 404  | Resource doesn't exist or doesn't belong to user |
+| `VALIDATION_ERROR`         | 400  | Zod validation failed                            |
+| `GOAL_ALREADY_ACTIVE`      | 409  | Creating a second active goal                    |
+| `SESSION_ALREADY_ACTIVE`   | 409  | Starting a workout with IN_PROGRESS session      |
+| `AI_UNAVAILABLE`           | 503  | AI provider returned an error                    |
+| `EXERCISE_API_UNAVAILABLE` | 503  | External exercise API down                       |
+| `RATE_LIMIT_EXCEEDED`      | 429  | Too many AI requests                             |
+| `INTERNAL_ERROR`           | 500  | Unhandled server error                           |
 
 ---
 
 ## 6. Rate Limiting
 
-| Endpoint Group | Limit | Window |
-|---------------|-------|--------|
-| `/api/ai/*` | 10 requests | Per user per hour |
-| `/api/sessions/*/sets` | 200 requests | Per user per hour |
-| `/api/auth/*` | 10 requests | Per IP per minute |
-| All others | 100 requests | Per user per minute |
+| Endpoint Group         | Limit        | Window              |
+| ---------------------- | ------------ | ------------------- |
+| `/api/ai/*`            | 10 requests  | Per user per hour   |
+| `/api/sessions/*/sets` | 200 requests | Per user per hour   |
+| `/api/auth/*`          | 10 requests  | Per IP per minute   |
+| All others             | 100 requests | Per user per minute |
 
 Rate limiting is implemented using Upstash Redis with a sliding window algorithm.
 
 Headers returned on rate-limited responses:
+
 ```
 X-RateLimit-Limit: 10
 X-RateLimit-Remaining: 0

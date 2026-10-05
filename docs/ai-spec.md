@@ -3,6 +3,8 @@
 **Version:** 1.0.0  
 **Date:** 2026-08-24
 
+> **Archived specification:** AI route handlers and user-specific optimization workflows are not part of the active public catalog. This document describes the former planned implementation.
+
 ---
 
 ## Table of Contents
@@ -27,12 +29,12 @@
 
 The fundamental contract is:
 
-| Role | Responsibility |
-|------|---------------|
-| **Code** | All numerical calculations (BMI, BMR, TDEE, calories, protein, statistics, progress) |
-| **Database** | Single source of truth for all user data |
-| **AI** | Qualitative analysis, suggestions, optimization, and personalized commentary |
-| **User** | Final decision-maker; all AI suggestions require explicit approval |
+| Role         | Responsibility                                                                       |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Code**     | All numerical calculations (BMI, BMR, TDEE, calories, protein, statistics, progress) |
+| **Database** | Single source of truth for all user data                                             |
+| **AI**       | Qualitative analysis, suggestions, optimization, and personalized commentary         |
+| **User**     | Final decision-maker; all AI suggestions require explicit approval                   |
 
 AI must never be a single point of failure. Every AI-powered feature must have a functional non-AI fallback.
 
@@ -40,14 +42,14 @@ AI must never be a single point of failure. Every AI-powered feature must have a
 
 ## 2. AI Responsibilities
 
-| Feature | AI Role | Output Type |
-|---------|---------|-------------|
-| Routine optimization | Suggest better exercise ordering for a workout day | Structured JSON |
-| Imbalance detection | Flag missing muscle groups in the weekly split | Structured JSON |
-| Exercise substitution | Suggest alternatives when equipment is unavailable | Structured JSON |
-| Progress insights | Generate natural-language summary of training trends | Text (markdown) |
-| Natural-language assistant | Answer fitness questions in a chat-like interface | Text (markdown) |
-| Workout recommendations | Suggest exercises for a new routine day | Structured JSON |
+| Feature                    | AI Role                                              | Output Type     |
+| -------------------------- | ---------------------------------------------------- | --------------- |
+| Routine optimization       | Suggest better exercise ordering for a workout day   | Structured JSON |
+| Imbalance detection        | Flag missing muscle groups in the weekly split       | Structured JSON |
+| Exercise substitution      | Suggest alternatives when equipment is unavailable   | Structured JSON |
+| Progress insights          | Generate natural-language summary of training trends | Text (markdown) |
+| Natural-language assistant | Answer fitness questions in a chat-like interface    | Text (markdown) |
+| Workout recommendations    | Suggest exercises for a new routine day              | Structured JSON |
 
 ---
 
@@ -57,17 +59,17 @@ This section is **normative**. Agents implementing AI features MUST enforce thes
 
 ### Prohibited AI Actions
 
-| Prohibited Action | Why | Implementation Control |
-|------------------|----|----------------------|
-| Calculate BMI | Deterministic formula | `bmi.ts` utility only |
-| Calculate BMR | Mifflin-St Jeor formula | `calories.ts` utility only |
-| Calculate TDEE | BMR x activity factor | `calories.ts` utility only |
-| Calculate calorie targets | Goal-adjusted TDEE | `calories.ts` utility only |
-| Calculate protein targets | Weight-based formula | `protein.ts` utility only |
-| Determine authorization | Session-based only | `auth()` + userId injection |
-| Write to the database | AI is advisory only | No Prisma access in ai.service.ts |
-| Return unvalidated output | Always parse with Zod | `validateAIOutput()` wrapper |
-| Receive raw PII | Privacy protection | Strip PII before prompt construction |
+| Prohibited Action         | Why                         | Implementation Control               |
+| ------------------------- | --------------------------- | ------------------------------------ |
+| Calculate BMI             | Deterministic formula       | `bmi.ts` utility only                |
+| Calculate BMR             | Mifflin-St Jeor formula     | `calories.ts` utility only           |
+| Calculate TDEE            | BMR x activity factor       | `calories.ts` utility only           |
+| Calculate calorie targets | Goal-adjusted TDEE          | `calories.ts` utility only           |
+| Calculate protein targets | Weight-based formula        | `protein.ts` utility only            |
+| Determine authorization   | Session-based only          | `auth()` + userId injection          |
+| Write to the database     | AI is advisory only         | No Prisma access in ai.service.ts    |
+| Return unvalidated output | Always parse with Zod       | `validateAIOutput()` wrapper         |
+| Receive raw PII           | Privacy protection          | Strip PII before prompt construction |
 | Override user-logged data | User is the source of truth | AI can only suggest, never overwrite |
 
 ### Enforcement in Code
@@ -82,7 +84,7 @@ This section is **normative**. Agents implementing AI features MUST enforce thes
 export function sanitizeUserContextForAI(profile: UserProfile): AIUserContext {
   return {
     // OK to send: aggregate metrics, preferences
-    ageRange: getAgeRange(profile.dateOfBirth),     // "25-30" not exact DOB
+    ageRange: getAgeRange(profile.dateOfBirth), // "25-30" not exact DOB
     activityLevel: profile.activityLevel,
     experienceLevel: profile.experienceLevel,
     // NEVER send: userId, email, name, exact DOB, passwordHash
@@ -120,13 +122,12 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 // Provider abstraction — swap without changing ai.service.ts
-export const aiProvider = process.env.AI_PROVIDER === 'google'
-  ? createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_AI_KEY! })
-  : createOpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+export const aiProvider =
+  process.env.AI_PROVIDER === 'google'
+    ? createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_AI_KEY! })
+    : createOpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-export const AI_MODEL = process.env.AI_PROVIDER === 'google'
-  ? 'gemini-2.0-flash'
-  : 'gpt-4o';
+export const AI_MODEL = process.env.AI_PROVIDER === 'google' ? 'gemini-2.0-flash' : 'gpt-4o';
 ```
 
 ---
@@ -195,20 +196,26 @@ OUTPUT SCHEMA:
 import { z } from 'zod';
 
 export const RoutineOptimizationOutputSchema = z.object({
-  suggestions: z.array(z.object({
-    dayId: z.string().cuid(),
-    suggestedOrder: z.array(z.string().cuid()).min(1).max(30),
-    rationale: z.string().max(200),
-  })),
-  imbalances: z.array(z.object({
-    type: z.enum(['NO_POSTERIOR_CHAIN', 'INSUFFICIENT_RECOVERY', 'PUSH_PULL_IMBALANCE', 'OTHER']),
-    message: z.string().max(300),
-  })),
-  substitutions: z.array(z.object({
-    originalExerciseId: z.string().cuid(),
-    suggestedExerciseId: z.string().cuid(),
-    rationale: z.string().max(200),
-  })),
+  suggestions: z.array(
+    z.object({
+      dayId: z.string().cuid(),
+      suggestedOrder: z.array(z.string().cuid()).min(1).max(30),
+      rationale: z.string().max(200),
+    })
+  ),
+  imbalances: z.array(
+    z.object({
+      type: z.enum(['NO_POSTERIOR_CHAIN', 'INSUFFICIENT_RECOVERY', 'PUSH_PULL_IMBALANCE', 'OTHER']),
+      message: z.string().max(300),
+    })
+  ),
+  substitutions: z.array(
+    z.object({
+      originalExerciseId: z.string().cuid(),
+      suggestedExerciseId: z.string().cuid(),
+      rationale: z.string().max(200),
+    })
+  ),
 });
 
 export const ProgressInsightOutputSchema = z.object({
@@ -217,11 +224,15 @@ export const ProgressInsightOutputSchema = z.object({
   suggestions: z.array(z.string().max(200)).max(3),
 });
 
-export const ExerciseSubstitutionOutputSchema = z.array(z.object({
-  exerciseId: z.string().cuid(),
-  name: z.string().max(100),
-  rationale: z.string().max(200),
-})).max(3);
+export const ExerciseSubstitutionOutputSchema = z
+  .array(
+    z.object({
+      exerciseId: z.string().cuid(),
+      name: z.string().max(100),
+      rationale: z.string().max(200),
+    })
+  )
+  .max(3);
 ```
 
 ### Validation Pattern
@@ -247,18 +258,21 @@ async function validateAIOutput<T>(schema: z.ZodSchema<T>, raw: unknown): Promis
 **Trigger:** User clicks "AI Optimize" on their routine page.
 
 **Context sent to AI:**
+
 - List of exercises per day (id, name, category, primary muscle groups)
 - Days of week for each workout
 - User experience level and activity level
 - No PII
 
 **Validation steps:**
+
 1. Parse with `RoutineOptimizationOutputSchema`.
 2. Verify all `dayId` values exist and belong to the user's routine.
 3. Verify all `exerciseId` values exist in the exercise library.
 4. Reject suggestion if it would result in 0 exercises on a non-rest day.
 
 **User interaction:**
+
 - Show diff view: "Current order" vs "Suggested order".
 - User can accept all, accept individual day suggestions, or reject.
 - On accept: call `PUT /api/routines/:id/days/:dayId/exercises/reorder`.
@@ -270,6 +284,7 @@ async function validateAIOutput<T>(schema: z.ZodSchema<T>, raw: unknown): Promis
 **Trigger:** User visits the Progress page and clicks "Get AI Insights".
 
 **Context sent to AI:**
+
 - Aggregated stats (total volume, workout count, frequency %) for the last 4 weeks.
 - Muscle group breakdown.
 - Personal records (exercise name + weight, no dates).
@@ -286,6 +301,7 @@ async function validateAIOutput<T>(schema: z.ZodSchema<T>, raw: unknown): Promis
 **Trigger:** User taps "Can't do this" during workout execution.
 
 **Context sent to AI:**
+
 - Exercise name, category, primary and secondary muscle groups.
 - User's available equipment (from profile).
 - User experience level.
@@ -293,6 +309,7 @@ async function validateAIOutput<T>(schema: z.ZodSchema<T>, raw: unknown): Promis
 **Validation:** `ExerciseSubstitutionOutputSchema` + DB existence check for suggested exercise IDs.
 
 **User interaction:**
+
 - Present up to 3 alternatives with rationale.
 - User selects one; exercise is swapped in-session only (not saved to routine without explicit action).
 
@@ -302,10 +319,10 @@ async function validateAIOutput<T>(schema: z.ZodSchema<T>, raw: unknown): Promis
 
 ### Supported External APIs
 
-| API | Base URL | Auth | Data Quality |
-|-----|---------|------|-------------|
-| ExerciseDB (RapidAPI) | `https://exercisedb.p.rapidapi.com` | API Key header | High; 1300+ exercises |
-| WGER REST API | `https://wger.de/api/v2` | Token or anonymous | Medium; open source |
+| API                   | Base URL                            | Auth               | Data Quality          |
+| --------------------- | ----------------------------------- | ------------------ | --------------------- |
+| ExerciseDB (RapidAPI) | `https://exercisedb.p.rapidapi.com` | API Key header     | High; 1300+ exercises |
+| WGER REST API         | `https://wger.de/api/v2`            | Token or anonymous | Medium; open source   |
 
 **Decision:** Use ExerciseDB as primary, WGER as fallback. Both are normalized into the same internal schema.
 
@@ -326,8 +343,12 @@ interface NormalizedExercise {
   secondaryMuscles: string[];
 }
 
-export function normalizeExerciseDB(raw: ExerciseDBExercise): NormalizedExercise { /* ... */ }
-export function normalizeWGER(raw: WGERExercise): NormalizedExercise { /* ... */ }
+export function normalizeExerciseDB(raw: ExerciseDBExercise): NormalizedExercise {
+  /* ... */
+}
+export function normalizeWGER(raw: WGERExercise): NormalizedExercise {
+  /* ... */
+}
 ```
 
 ### Sync Strategy
@@ -384,18 +405,18 @@ async function fetchAllExercises(): Promise<ExternalExercise[]> {
 
 ### Data Minimization
 
-| Data Type | Sent to AI? |
-|-----------|-----------|
-| User ID | NEVER |
-| Email | NEVER |
-| Name | NEVER |
-| Date of birth | NEVER (age range only) |
-| Biological sex | NEVER |
-| Exercise IDs | Yes (internal IDs only) |
-| Exercise names | Yes (from our DB, not user input) |
-| Aggregated stats | Yes (pre-calculated numbers) |
-| Personal records | Yes (weight + exercise name) |
-| Raw set logs | NEVER |
+| Data Type        | Sent to AI?                       |
+| ---------------- | --------------------------------- |
+| User ID          | NEVER                             |
+| Email            | NEVER                             |
+| Name             | NEVER                             |
+| Date of birth    | NEVER (age range only)            |
+| Biological sex   | NEVER                             |
+| Exercise IDs     | Yes (internal IDs only)           |
+| Exercise names   | Yes (from our DB, not user input) |
+| Aggregated stats | Yes (pre-calculated numbers)      |
+| Personal records | Yes (weight + exercise name)      |
+| Raw set logs     | NEVER                             |
 
 ### AI Response Isolation
 
@@ -406,25 +427,25 @@ async function fetchAllExercises(): Promise<ExternalExercise[]> {
 
 ## 10. AI Cost Controls
 
-| Control | Implementation |
-|---------|---------------|
-| Per-user rate limit | 10 AI calls/hour via Upstash Redis |
-| Daily budget alert | Monitor via AI provider dashboard + webhook |
-| Token budget | Max 2000 input tokens + 500 output tokens per routine optimization call |
-| Model selection | Use GPT-4o-mini or Gemini Flash for simple tasks; full model for optimization |
-| Streaming | Use streaming for progress insights to improve perceived performance |
-| Caching AI responses | NOT cached — suggestions must be fresh per request |
+| Control              | Implementation                                                                |
+| -------------------- | ----------------------------------------------------------------------------- |
+| Per-user rate limit  | 10 AI calls/hour via Upstash Redis                                            |
+| Daily budget alert   | Monitor via AI provider dashboard + webhook                                   |
+| Token budget         | Max 2000 input tokens + 500 output tokens per routine optimization call       |
+| Model selection      | Use GPT-4o-mini or Gemini Flash for simple tasks; full model for optimization |
+| Streaming            | Use streaming for progress insights to improve perceived performance          |
+| Caching AI responses | NOT cached — suggestions must be fresh per request                            |
 
 ---
 
 ## 11. Failure Modes and Fallbacks
 
-| Failure | User Experience | System Behavior |
-|---------|----------------|----------------|
-| AI provider 503 | Toast: "AI is temporarily unavailable" | Log error; return 503 from route |
-| AI output fails Zod validation | Toast: "Couldn't analyze routine, please try again" | Log full AI output for debugging |
-| AI returns hallucinated exercise IDs | Silent rejection; partial results shown | DB check filters out unknown IDs |
-| Rate limit exceeded | Toast: "You've reached your AI limit for today" | Return 429 with retry-after |
-| AI provider timeout (>10s) | Toast: "Request timed out" | Abort signal + 503 response |
+| Failure                              | User Experience                                     | System Behavior                  |
+| ------------------------------------ | --------------------------------------------------- | -------------------------------- |
+| AI provider 503                      | Toast: "AI is temporarily unavailable"              | Log error; return 503 from route |
+| AI output fails Zod validation       | Toast: "Couldn't analyze routine, please try again" | Log full AI output for debugging |
+| AI returns hallucinated exercise IDs | Silent rejection; partial results shown             | DB check filters out unknown IDs |
+| Rate limit exceeded                  | Toast: "You've reached your AI limit for today"     | Return 429 with retry-after      |
+| AI provider timeout (>10s)           | Toast: "Request timed out"                          | Abort signal + 503 response      |
 
 **Key principle:** AI failure must never block the user from completing a workout or viewing their data.

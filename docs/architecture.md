@@ -3,6 +3,8 @@
 **Version:** 1.0.0  
 **Date:** 2026-08-24
 
+> **Archived architecture:** The active app now contains only public Discover and static Exercise Library pages plus `/api/health`. Authentication, personal-data APIs, and persistence described below have been removed from the app surface.
+
 ---
 
 ## Table of Contents
@@ -46,14 +48,14 @@
 
 ### Key Architectural Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------| 
-| Rendering strategy | RSC + Client components | Server components for data fetching; client for interactivity |
-| API layer | Next.js Route Handlers | Colocation with framework; avoid separate API server |
-| State management | React Query (TanStack Query) | Server-state sync, caching, offline support |
-| Form management | React Hook Form + Zod | Type-safe validation; minimal re-renders |
-| Offline storage | Dexie.js (IndexedDB) | Typed, promise-based IndexedDB wrapper |
-| Push notifications | Web Push API (VAPID) | No native SDK required; works on modern mobile browsers |
+| Decision           | Choice                       | Rationale                                                     |
+| ------------------ | ---------------------------- | ------------------------------------------------------------- |
+| Rendering strategy | RSC + Client components      | Server components for data fetching; client for interactivity |
+| API layer          | Next.js Route Handlers       | Colocation with framework; avoid separate API server          |
+| State management   | React Query (TanStack Query) | Server-state sync, caching, offline support                   |
+| Form management    | React Hook Form + Zod        | Type-safe validation; minimal re-renders                      |
+| Offline storage    | Dexie.js (IndexedDB)         | Typed, promise-based IndexedDB wrapper                        |
+| Push notifications | Web Push API (VAPID)         | No native SDK required; works on modern mobile browsers       |
 
 ---
 
@@ -275,63 +277,63 @@ Cross-Cutting:
 
 ### ProfileService
 
-| Method | Responsibility |
-|--------|---------------|
-| `createProfile(userId, data)` | Create initial user profile post-registration |
-| `updateProfile(userId, data)` | Update user preferences and metrics |
-| `getProfile(userId)` | Fetch full profile with latest weight |
-| `completeOnboarding(userId, data)` | Atomic onboarding transaction |
-| `computeMetrics(profile)` | Return BMI, BMR, TDEE, protein target |
+| Method                             | Responsibility                                |
+| ---------------------------------- | --------------------------------------------- |
+| `createProfile(userId, data)`      | Create initial user profile post-registration |
+| `updateProfile(userId, data)`      | Update user preferences and metrics           |
+| `getProfile(userId)`               | Fetch full profile with latest weight         |
+| `completeOnboarding(userId, data)` | Atomic onboarding transaction                 |
+| `computeMetrics(profile)`          | Return BMI, BMR, TDEE, protein target         |
 
 ### RoutineService
 
-| Method | Responsibility |
-|--------|---------------|
-| `createRoutine(userId, data)` | Create a new routine |
-| `activateRoutine(userId, routineId)` | Deactivate current, activate new |
-| `getActiveRoutine(userId)` | Fetch active routine with days and exercises |
-| `addExerciseToDay(userId, dayId, exerciseId, defaults)` | Add exercise with position |
-| `reorderExercises(userId, dayId, orderedIds)` | Update display order |
-| `getTodayWorkout(userId, date)` | Map today's DOW to routine day |
+| Method                                                  | Responsibility                               |
+| ------------------------------------------------------- | -------------------------------------------- |
+| `createRoutine(userId, data)`                           | Create a new routine                         |
+| `activateRoutine(userId, routineId)`                    | Deactivate current, activate new             |
+| `getActiveRoutine(userId)`                              | Fetch active routine with days and exercises |
+| `addExerciseToDay(userId, dayId, exerciseId, defaults)` | Add exercise with position                   |
+| `reorderExercises(userId, dayId, orderedIds)`           | Update display order                         |
+| `getTodayWorkout(userId, date)`                         | Map today's DOW to routine day               |
 
 ### SessionService
 
-| Method | Responsibility |
-|--------|---------------|
-| `startSession(userId, routineDayId)` | Create WorkoutSession record |
-| `logSet(userId, sessionId, data)` | Append SetLog; check ownership |
-| `finishSession(userId, sessionId)` | Mark COMPLETED; compute volume |
-| `abandonSession(userId, sessionId)` | Mark ABANDONED |
-| `getSessionHistory(userId, filters)` | Paginated history |
-| `getLastPerformance(userId, exerciseId)` | Previous sets for exercise |
+| Method                                   | Responsibility                 |
+| ---------------------------------------- | ------------------------------ |
+| `startSession(userId, routineDayId)`     | Create WorkoutSession record   |
+| `logSet(userId, sessionId, data)`        | Append SetLog; check ownership |
+| `finishSession(userId, sessionId)`       | Mark COMPLETED; compute volume |
+| `abandonSession(userId, sessionId)`      | Mark ABANDONED                 |
+| `getSessionHistory(userId, filters)`     | Paginated history              |
+| `getLastPerformance(userId, exerciseId)` | Previous sets for exercise     |
 
 ### StatsService
 
-| Method | Responsibility |
-|--------|---------------|
-| `getWeeklyStats(userId, weekStart)` | Aggregate sessions for the week |
-| `getMonthlyStats(userId, year, month)` | Aggregate sessions for the month |
-| `getYearlyStats(userId, year)` | Aggregate sessions for the year |
-| `getPersonalRecords(userId)` | Best set per exercise ever |
-| `getFrequencyPercentage(userId, period)` | Completed / scheduled * 100 |
+| Method                                   | Responsibility                   |
+| ---------------------------------------- | -------------------------------- |
+| `getWeeklyStats(userId, weekStart)`      | Aggregate sessions for the week  |
+| `getMonthlyStats(userId, year, month)`   | Aggregate sessions for the month |
+| `getYearlyStats(userId, year)`           | Aggregate sessions for the year  |
+| `getPersonalRecords(userId)`             | Best set per exercise ever       |
+| `getFrequencyPercentage(userId, period)` | Completed / scheduled * 100      |
 
 ### GoalService
 
-| Method | Responsibility |
-|--------|---------------|
-| `createGoal(userId, data)` | Create goal; enforce single-active rule |
-| `updateGoalProgress(userId, goalId)` | Recompute progress from source data |
-| `archiveGoal(userId, goalId)` | Mark COMPLETED or EXPIRED |
-| `getActiveGoal(userId)` | Fetch current active goal with progress |
+| Method                               | Responsibility                          |
+| ------------------------------------ | --------------------------------------- |
+| `createGoal(userId, data)`           | Create goal; enforce single-active rule |
+| `updateGoalProgress(userId, goalId)` | Recompute progress from source data     |
+| `archiveGoal(userId, goalId)`        | Mark COMPLETED or EXPIRED               |
+| `getActiveGoal(userId)`              | Fetch current active goal with progress |
 
 ### AIService
 
-| Method | Responsibility |
-|--------|---------------|
-| `optimizeRoutine(userId, routineId)` | Build prompt, call AI, validate output |
-| `getProgressInsights(userId)` | Build prompt, call AI, return insights |
-| `suggestSubstitute(exerciseId, constraints)` | Suggest alternatives |
-| `validateAIOutput(schema, raw)` | Zod parse; throw on failure |
+| Method                                       | Responsibility                         |
+| -------------------------------------------- | -------------------------------------- |
+| `optimizeRoutine(userId, routineId)`         | Build prompt, call AI, validate output |
+| `getProgressInsights(userId)`                | Build prompt, call AI, return insights |
+| `suggestSubstitute(exerciseId, constraints)` | Suggest alternatives                   |
+| `validateAIOutput(schema, raw)`              | Zod parse; throw on failure            |
 
 ---
 
@@ -367,12 +369,12 @@ User -> Login Page
 
 ### Authorization Rules
 
-| Rule | Implementation |
-|------|---------------|
+| Rule                               | Implementation                                                                               |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
 | Every data query includes `userId` | Service layer always receives `userId` from route handler; Prisma `where` always includes it |
-| AI cannot determine authorization | `userId` injected by server after session validation; AI never receives raw user IDs |
-| Admin routes | Separate `(admin)` route group with role check middleware |
-| API keys never on client | All external API calls (AI, ExerciseDB) made server-side |
+| AI cannot determine authorization  | `userId` injected by server after session validation; AI never receives raw user IDs         |
+| Admin routes                       | Separate `(admin)` route group with role check middleware                                    |
+| API keys never on client           | All external API calls (AI, ExerciseDB) made server-side                                     |
 
 ### Session Strategy
 
@@ -387,13 +389,13 @@ User -> Login Page
 
 ### Service Worker Cache Strategy
 
-| Resource Type | Cache Strategy | Cache Name |
-|--------------|----------------|------------|
-| App shell (HTML, CSS, JS) | Cache First | `gymflow-shell-v1` |
-| Exercise images | Stale While Revalidate | `gymflow-exercises-v1` |
-| API responses (today's workout) | Network First, fallback to cache | `gymflow-api-v1` |
-| AI responses | Network only (no cache) | — |
-| User-written data (sets) | Background sync via offline queue | — |
+| Resource Type                   | Cache Strategy                    | Cache Name             |
+| ------------------------------- | --------------------------------- | ---------------------- |
+| App shell (HTML, CSS, JS)       | Cache First                       | `gymflow-shell-v1`     |
+| Exercise images                 | Stale While Revalidate            | `gymflow-exercises-v1` |
+| API responses (today's workout) | Network First, fallback to cache  | `gymflow-api-v1`       |
+| AI responses                    | Network only (no cache)           | —                      |
+| User-written data (sets)        | Background sync via offline queue | —                      |
 
 ### Offline Queue
 
@@ -435,15 +437,15 @@ User logs a set (offline)
 
 ## 7. Caching Strategy
 
-| Data | Cache Location | TTL | Invalidation |
-|------|---------------|-----|-------------|
-| Exercise library | PostgreSQL (seeded) | Permanent (re-sync weekly) | Manual re-sync or cron |
-| Today's workout | React Query client cache | 5 minutes | Workout start or session complete |
-| Statistics | React Query | 1 minute | Session finish |
-| User profile | React Query | Until mutation | Profile update |
-| External exercise API | In-memory (server) | 24 hours | Cron weekly re-sync |
-| AI responses | No cache | — | Never cached |
-| Service worker assets | Cache Storage (browser) | Until SW version bump | New deployment |
+| Data                  | Cache Location           | TTL                        | Invalidation                      |
+| --------------------- | ------------------------ | -------------------------- | --------------------------------- |
+| Exercise library      | PostgreSQL (seeded)      | Permanent (re-sync weekly) | Manual re-sync or cron            |
+| Today's workout       | React Query client cache | 5 minutes                  | Workout start or session complete |
+| Statistics            | React Query              | 1 minute                   | Session finish                    |
+| User profile          | React Query              | Until mutation             | Profile update                    |
+| External exercise API | In-memory (server)       | 24 hours                   | Cron weekly re-sync               |
+| AI responses          | No cache                 | —                          | Never cached                      |
+| Service worker assets | Cache Storage (browser)  | Until SW version bump      | New deployment                    |
 
 ### React Query Configuration
 
@@ -451,8 +453,8 @@ User logs a set (offline)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,      // 1 minute
-      gcTime: 5 * 60 * 1000,     // 5 minutes
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
       retry: 2,
       refetchOnWindowFocus: false,
     },
@@ -466,25 +468,25 @@ const queryClient = new QueryClient({
 
 ### Error Classification
 
-| Class | HTTP Code | User Message | Logging |
-|-------|-----------|-------------|--------|
-| Validation error | 400 | Field-level messages from Zod | No |
-| Authentication error | 401 | "Please log in" | No |
-| Authorization error | 403 | "You don't have access" | Yes (anomaly) |
-| Not found | 404 | "Not found" | No |
-| AI service error | 503 | "AI unavailable, try again" | Yes |
-| External API error | 503 | "Exercise data unavailable" | Yes |
-| Database error | 500 | "Something went wrong" | Yes (critical) |
-| Rate limit | 429 | "Too many requests" | Yes |
+| Class                | HTTP Code | User Message                  | Logging        |
+| -------------------- | --------- | ----------------------------- | -------------- |
+| Validation error     | 400       | Field-level messages from Zod | No             |
+| Authentication error | 401       | "Please log in"               | No             |
+| Authorization error  | 403       | "You don't have access"       | Yes (anomaly)  |
+| Not found            | 404       | "Not found"                   | No             |
+| AI service error     | 503       | "AI unavailable, try again"   | Yes            |
+| External API error   | 503       | "Exercise data unavailable"   | Yes            |
+| Database error       | 500       | "Something went wrong"        | Yes (critical) |
+| Rate limit           | 429       | "Too many requests"           | Yes            |
 
 ### Error Structure
 
 ```typescript
 interface APIError {
-  code: string;         // e.g. 'VALIDATION_ERROR'
-  message: string;      // User-facing message
-  details?: unknown;    // Zod error details (dev only)
-  requestId?: string;   // Correlation ID for log lookup
+  code: string; // e.g. 'VALIDATION_ERROR'
+  message: string; // User-facing message
+  details?: unknown; // Zod error details (dev only)
+  requestId?: string; // Correlation ID for log lookup
 }
 ```
 
@@ -504,14 +506,14 @@ All data entering the system — from users, from AI, from external APIs — is 
 
 ### Validation Points
 
-| Boundary | Validation Tool | When |
-|----------|----------------|------|
-| Form input | React Hook Form + Zod (client-side) | On blur + on submit |
-| API request body | Zod (server-side, in route handler) | Before calling service |
-| API query params | Zod (server-side) | Before calling service |
-| AI output | Zod (server-side, in ai.service.ts) | After every AI call |
-| External API response | Zod (server-side, in normalizer.ts) | After every API call |
-| Environment variables | Zod (at startup in env.ts) | On app boot |
+| Boundary              | Validation Tool                     | When                   |
+| --------------------- | ----------------------------------- | ---------------------- |
+| Form input            | React Hook Form + Zod (client-side) | On blur + on submit    |
+| API request body      | Zod (server-side, in route handler) | Before calling service |
+| API query params      | Zod (server-side)                   | Before calling service |
+| AI output             | Zod (server-side, in ai.service.ts) | After every AI call    |
+| External API response | Zod (server-side, in normalizer.ts) | After every API call   |
+| Environment variables | Zod (at startup in env.ts)          | On app boot            |
 
 ---
 
@@ -519,18 +521,18 @@ All data entering the system — from users, from AI, from external APIs — is 
 
 ### Threat Model
 
-| Threat | Control |
-|--------|--------|
-| Unauthenticated access | Auth middleware on all `(app)/*` routes |
-| Horizontal privilege escalation | `userId` always in query `WHERE` clause |
-| SQL injection | Prisma parameterized queries |
-| XSS | React DOM escaping + CSP header |
-| CSRF | NextAuth double-submit cookie |
-| Secret leakage | Server-side only env vars; no `NEXT_PUBLIC_` for secrets |
-| AI prompt injection | System prompt hardened; user input sanitized before inclusion |
-| AI data leakage | User PII stripped from AI prompts; only anonymized metrics sent |
-| Rate limiting | Upstash Redis rate limiter on AI routes |
-| Brute force | NextAuth built-in rate limiting; CAPTCHA on register |
+| Threat                          | Control                                                         |
+| ------------------------------- | --------------------------------------------------------------- |
+| Unauthenticated access          | Auth middleware on all `(app)/*` routes                         |
+| Horizontal privilege escalation | `userId` always in query `WHERE` clause                         |
+| SQL injection                   | Prisma parameterized queries                                    |
+| XSS                             | React DOM escaping + CSP header                                 |
+| CSRF                            | NextAuth double-submit cookie                                   |
+| Secret leakage                  | Server-side only env vars; no `NEXT_PUBLIC_` for secrets        |
+| AI prompt injection             | System prompt hardened; user input sanitized before inclusion   |
+| AI data leakage                 | User PII stripped from AI prompts; only anonymized metrics sent |
+| Rate limiting                   | Upstash Redis rate limiter on AI routes                         |
+| Brute force                     | NextAuth built-in rate limiting; CAPTCHA on register            |
 
 ### HTTP Security Headers
 
@@ -611,23 +613,24 @@ Presentation Layer
 
 ### Key External Dependencies
 
-| Package | Purpose | Risk if Unavailable |
-|---------|---------|-------------------|
-| next | Framework | Critical |
-| @prisma/client | ORM | Critical |
-| next-auth | Authentication | Critical |
-| @tanstack/react-query | Server state | High |
-| ai (Vercel AI SDK) | AI integration | Low (AI features degraded) |
-| dexie | IndexedDB | Medium (offline broken) |
-| zod | Validation | Critical |
-| react-hook-form | Forms | Medium |
-| web-push | Push notifications | Low (notifications disabled) |
+| Package               | Purpose            | Risk if Unavailable          |
+| --------------------- | ------------------ | ---------------------------- |
+| next                  | Framework          | Critical                     |
+| @prisma/client        | ORM                | Critical                     |
+| next-auth             | Authentication     | Critical                     |
+| @tanstack/react-query | Server state       | High                         |
+| ai (Vercel AI SDK)    | AI integration     | Low (AI features degraded)   |
+| dexie                 | IndexedDB          | Medium (offline broken)      |
+| zod                   | Validation         | Critical                     |
+| react-hook-form       | Forms              | Medium                       |
+| web-push              | Push notifications | Low (notifications disabled) |
 
 ---
 
 ## 13. Development Roadmap
 
 ### Phase 0 — Foundation (Agent 1–3)
+
 - Project scaffold with Next.js, TypeScript, Tailwind, shadcn/ui
 - Prisma schema + PostgreSQL connection
 - NextAuth authentication (email + Google)
@@ -635,6 +638,7 @@ Presentation Layer
 - Base layout, navigation shell, PWA manifest
 
 ### Phase 1 — Core Workout (Agent 4–8)
+
 - Exercise library (seed from external API)
 - Routine builder (CRUD + day assignment)
 - Workout execution mode
@@ -642,30 +646,35 @@ Presentation Layer
 - Today's workout on dashboard
 
 ### Phase 2 — Tracking and History (Agent 9–11)
+
 - Workout history
 - Calendar view
 - Statistics (weekly, monthly, yearly)
 - Personal records
 
 ### Phase 3 — Body and Goals (Agent 12–14)
+
 - Weight tracking + chart
 - BMI display
 - Goal system (create, track, complete)
 - Calorie and protein estimation
 
 ### Phase 4 — AI and Smart Features (Agent 15–17)
+
 - AI routine optimization
 - AI progress insights
 - Exercise substitution suggestions
 - Muscle group imbalance detection
 
 ### Phase 5 — PWA and Offline (Agent 18–19)
+
 - Service worker implementation
 - Offline set logging queue
 - Push notification reminders
 - Sync conflict resolution
 
 ### Phase 6 — Polish and Production (Agent 20–21)
+
 - WCAG 2.1 AA audit
 - Performance optimization
 - E2E test suite
